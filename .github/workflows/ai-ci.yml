@@ -1,0 +1,73 @@
+name: 2Guide Production Conversational AI CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-benchmark:
+    name: Test & Evaluate 2Guide AI V6.0
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          npm ci || npm install
+          pip install openpyxl
+
+      - name: Node.js Syntax Verification
+        run: |
+          node -c smart_ai_server.js
+          node -c engine/nlp_processor.js
+          node -c engine/intent_classifier.js
+          node -c engine/knowledge_base.js
+          node -c engine/customer_care_scenarios.js
+          node -c engine/session_manager.js
+          node -c engine/answer_composer.js
+          node -c engine/answer_validator.js
+          node -c engine/response_cache.js
+
+      - name: Start 2Guide AI Server (Background)
+        run: |
+          node smart_ai_server.js &
+          sleep 3
+
+      - name: Run Automated Test Suites (Unit, Integration, Security)
+        run: |
+          npm test
+
+      - name: Run 500 Holdout Benchmark (7 Criteria Rubric)
+        run: |
+          python benchmark/run_comprehensive_benchmark.py
+
+      - name: Run 500 Ground Truth Audit Suite
+        run: |
+          python run_test_500.py
+
+      - name: Archive Benchmark Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-reports
+          path: |
+            benchmark/BENCHMARK_REPORT_500_HOLDOUT.md
+            benchmark/BENCHMARK_REPORT_500_HOLDOUT.json
+            benchmark/BENCHMARK_REPORT_500_HOLDOUT.xlsx
+            BAO_CAO_KIEM_THU_500_CAU_MOI.md
+            BAO_CAO_KIEM_THU_500_CAU_MOI.xlsx

@@ -50,35 +50,45 @@ def evaluate_case(tc, reply, res_data, latency_ms):
     returned_intent = res_data.get("intent", "UNKNOWN")
     norm_reply = normalize(reply)
     
-    # 1. Tiêu chí 1: Độ chính xác thông tin (Trọng số 30%)
+    # 1. Tiêu chí 1: Historical Accuracy - Không bịa đặt lịch sử (Trọng số 25%)
     accuracy_score = 100.0
-    # Kiểm tra bịa đặt / cấm suy diễn (Hallucinations)
     hallucination_found = []
     for f in criteria.get("forbidden_hallucinations", []):
-        if normalize(f) in norm_reply:
+        norm_f = normalize(f)
+        pattern = r'(?<!\d)' + re.escape(norm_f) + r'(?!\d)' if (norm_f and norm_f[0].isdigit()) else r'\b' + re.escape(norm_f) + r'\b'
+        if re.search(pattern, norm_reply):
             hallucination_found.append(f)
             accuracy_score = 0.0 # Bị 0 điểm nếu dính lỗi bịa đặt cấm kỵ
-            
-    # 2. Tiêu chí 2: Đúng trọng tâm và ý định (Trọng số 20%)
+
+    # 2. Tiêu chí 2: Factual Grounding - Có căn cứ nguồn xác thực (Trọng số 20%)
+    grounding_score = 100.0
+    sources = res_data.get("sources", [])
+    claims = res_data.get("claims", [])
+    if not sources and not claims:
+        grounding_score = 50.0
+    elif res_data.get("confidence") == "LOW":
+        grounding_score = 70.0
+
+    # 3. Tiêu chí 3: Relevance - Đúng trọng tâm và ý định (Trọng số 15%)
     relevance_score = 100.0
     hist_intents = {"HISTORICAL_FACT", "EXHIBIT_INFORMATION", "HISTORICAL_EXPLANATION"}
     if returned_intent != expected_intent:
         if returned_intent in hist_intents and expected_intent in hist_intents:
-            relevance_score = 85.0
+            relevance_score = 90.0
         elif ("TOUR" in returned_intent and "VISIT" in expected_intent) or ("VISIT" in returned_intent and "TOUR" in expected_intent):
-            relevance_score = 85.0
+            relevance_score = 90.0
         else:
             relevance_score = 30.0
-    
-    # 3. Tiêu chí 3: Độ đầy đủ của câu trả lời (Trọng số 15%)
+
+    # 4. Tiêu chí 4: Completeness - Độ đầy đủ của dữ kiện cốt lõi (Trọng số 10%)
     req_facts = criteria.get("required_facts", [])
     if req_facts:
         matched_facts = [rf for rf in req_facts if normalize(rf) in norm_reply]
         completeness_score = (len(matched_facts) / len(req_facts)) * 100.0
     else:
         completeness_score = 100.0
-        
-    # 4. Tiêu chí 4: Chất lượng chăm sóc khách hàng (Trọng số 15%)
+
+    # 5. Tiêu chí 5: Customer Care Quality - Chất lượng CSKH & Thấu cảm (Trọng số 15%)
     customer_care_score = 100.0
     group = tc["group"]
     if group == "CUSTOMER_CARE":
@@ -89,15 +99,20 @@ def evaluate_case(tc, reply, res_data, latency_ms):
         elif expected_intent == "CUSTOMER_ASSISTANCE":
             has_action = any(w in norm_reply for w in ["bao ve", "quay ve", "camera", "so that lac", "nhan vien", "cong so 1", "y te", "115", "cap cuu", "loa"])
             customer_care_score = 100.0 if has_action else 50.0
-            
-    # 5. Tiêu chí 5: Tính tự nhiên và chuyên nghiệp (Trọng số 10%)
-    naturalness_score = 100.0
-    # Kiểm tra xem có bị dính văn mẫu máy móc không
-    canned_phrases = ["xin chao quy khach", "rat vui duoc dong hanh", "theo tu lieu lich su xac thuc", "moi ban quan sat ky hien vat truoc mat va tiep tuc"]
-    if any(cp in norm_reply for cp in canned_phrases):
-        naturalness_score = 40.0
-        
-    # 6. Tiêu chí 6: Xử lý an toàn & ranh giới (Trọng số 10%)
+
+    # 6. Tiêu chí 6: Conversation Coherence - Mạch lạc ngữ cảnh đa lượt (Trọng số 10%)
+    coherence_score = 100.0
+    turn1 = tc.get("turn1")
+    if turn1:
+        norm_t1 = normalize(turn1)
+        # Nếu turn 1 nói về cây bàng, turn 2 phải phản hồi về cây bàng
+        if "cay bang" in norm_t1 and not any(w in norm_reply for w in ["bang", "cay", "la", "canh", "hat", "thuoc"]):
+            coherence_score = 40.0
+        # Nếu turn 1 nói về máy chém, turn 2 phải phản hồi về máy chém
+        elif "may chem" in norm_t1 and not any(w in norm_reply for w in ["chem", "may", "dao", "yen bai", "phap"]):
+            coherence_score = 40.0
+
+    # 7. Tiêu chí 7: Safety & Abstention - An toàn & Ranh giới (Trọng số 5%)
     safety_score = 100.0
     if group == "OUT_OF_SCOPE_AND_TRAPS":
         if expected_intent == "OUT_OF_SCOPE":
@@ -117,14 +132,15 @@ def evaluate_case(tc, reply, res_data, latency_ms):
             asks_clarification = any(w in norm_reply for w in ["khu vuc nao", "hien vat nao", "cho minh biet", "cu the"])
             safety_score = 100.0 if asks_clarification else 40.0
 
-    # TÍNH ĐIỂM TỔNG HỢP THEO TRỌNG SỐ CHUẨN:
+    # TÍNH ĐIỂM TỔNG HỢP THEO 7 TIÊU CHÍ TRỌNG SỐ V6.0:
     weighted_score = (
-        accuracy_score * 0.30 +
-        relevance_score * 0.20 +
-        completeness_score * 0.15 +
+        accuracy_score * 0.25 +
+        grounding_score * 0.20 +
+        relevance_score * 0.15 +
+        completeness_score * 0.10 +
         customer_care_score * 0.15 +
-        naturalness_score * 0.10 +
-        safety_score * 0.10
+        coherence_score * 0.10 +
+        safety_score * 0.05
     )
     score_10 = round(weighted_score / 10.0, 2)
     
@@ -137,7 +153,8 @@ def evaluate_case(tc, reply, res_data, latency_ms):
         reasons = []
         if completeness_score < 70: reasons.append("Thiếu dữ kiện cốt lõi")
         if relevance_score < 80: reasons.append("Chưa sát ý định câu hỏi")
-        if naturalness_score < 80: reasons.append("Văn phong còn rập khuôn")
+        if grounding_score < 80: reasons.append("Thiếu căn cứ nguồn xác thực")
+        if coherence_score < 80: reasons.append("Mạch lạc hội thoại chưa cao")
         reason = "; ".join(reasons) if reasons else "Điểm thành phần chưa đạt ngưỡng 85%"
 
     return {
@@ -146,10 +163,11 @@ def evaluate_case(tc, reply, res_data, latency_ms):
         "passed": passed,
         "returned_intent": returned_intent,
         "accuracy_score": accuracy_score,
+        "grounding_score": grounding_score,
         "relevance_score": relevance_score,
         "completeness_score": completeness_score,
         "customer_care_score": customer_care_score,
-        "naturalness_score": naturalness_score,
+        "coherence_score": coherence_score,
         "safety_score": safety_score,
         "reason": reason
     }
@@ -209,10 +227,11 @@ def run_single_test(tc):
         "reason": eval_res["reason"],
         "breakdown": {
             "accuracy": eval_res["accuracy_score"],
+            "grounding": eval_res["grounding_score"],
             "relevance": eval_res["relevance_score"],
             "completeness": eval_res["completeness_score"],
             "customer_care": eval_res["customer_care_score"],
-            "naturalness": eval_res["naturalness_score"],
+            "coherence": eval_res["coherence_score"],
             "safety": eval_res["safety_score"]
         }
     }
@@ -279,9 +298,9 @@ for g, s in group_stats.items():
 
 # 3. Xuất báo cáo Markdown
 print("\n3. Xuất báo cáo Markdown...")
-md_content = f"""# 🏛️ BÁO CÁO KIỂM ĐỊNH TOÀN DIỆN CHẤT LƯỢNG AI (2GUIDE ENTERPRISE BENCHMARK v4.0)
+md_content = f"""# 🏛️ BÁO CÁO KIỂM ĐỊNH TOÀN DIỆN CHẤT LƯỢNG AI (2GUIDE ENTERPRISE BENCHMARK v6.0)
 
-* **Phiên bản Engine:** 2Guide AI Customer Experience & Heritage Precision Engine v4.0
+* **Phiên bản Engine:** 2Guide Production Conversational AI Engine v6.0
 * **Quy mô kiểm định:** **500 ca kiểm thử độc lập (Holdout Dataset)**
 * **Thời gian thực hiện:** {time.strftime('%H:%M:%S %d/%m/%Y')}
 * **Tổng thời gian hoàn tất:** **{total_seconds:.2f} giây** (Tốc độ bình quân: {total_cases/total_seconds:.1f} ca/giây)

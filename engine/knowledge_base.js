@@ -284,6 +284,7 @@ const STOPWORDS = new Set([
 
 class KnowledgeBase {
   constructor() {
+    this.exhibits = HISTORICAL_EXHIBITS;
     this.groundTruth500 = [];
     this.groundTruthMap = new Map();
     this.invertedIndex500 = new Map();
@@ -566,6 +567,69 @@ class KnowledgeBase {
       default:
         return null;
     }
+  }
+
+  /**
+   * Truy xuất câu trả lời theo khía cạnh chuyên sâu (Aspect & Entity Graph V6.0)
+   * Phục vụ các câu hỏi cùng chủ đề nhưng khác yêu cầu (Cây bàng, Máy chém, Cống ngầm...)
+   */
+  getSemanticAspectAnswer(subject, aspect) {
+    if (subject === 'cay_bang') {
+      if (aspect === 'PURPOSE' || aspect === 'DAILY_PRISON_LIFE') {
+        return {
+          answer: 'Cây bàng gắn bó mật thiết với cuộc sống tù nhân Hỏa Lò: búp và lá bàng non được dùng nhai sống hoặc sắc lấy nước uống chữa khỏi bệnh kiết lỵ, tiêu chảy; vỏ cây bàng dùng sắc nước rửa sạch vết thương tra tấn; cành bàng được mài nhọn làm quản bút viết tài liệu, báo chí bí mật; nhân hạt bàng bùi béo dùng bồi dưỡng cho những đồng chí ốm nặng.',
+          sourceId: 'DOSSIER_CAY_BANG_LIFE',
+          source: 'Hồ sơ Di sản Cây bàng Hỏa Lò'
+        };
+      }
+      if (aspect === 'SIGNIFICANCE') {
+        return {
+          answer: 'Cây bàng cổ thụ trong sân trại giam Hỏa Lò là người bạn tri âm và biểu tượng kiên cường bất khuất của các chiến sĩ cách mạng. Dưới tán bàng rợp bóng mát, tù nhân tìm thấy niềm an ủi, nơi trao đổi tin tức bí mật và cảm nhận mầm sống tự do kiên cường vươn lên giữa bốn bức tường đá giam cầm.',
+          sourceId: 'DOSSIER_CAY_BANG_SYMBOL',
+          source: 'Hồ sơ Di sản Cây bàng Hỏa Lò'
+        };
+      }
+      if (aspect === 'ORIGIN') {
+        return {
+          answer: 'Ngày xưa khắp khuôn viên rộng gần 13.000 mét vuông của Nhà tù Hỏa Lò từng có nhiều cây bàng do tù nhân và binh lính trồng từ đầu thế kỷ 20. Trải qua biến thiên lịch sử, cây bàng cổ thụ gần trăm tuổi hiện nay tại sân trại giam là chứng nhân lịch sử quý giá còn được bảo tồn nguyên vẹn.',
+          sourceId: 'DOSSIER_CAY_BANG_ORIGIN',
+          source: 'Hồ sơ Di sản Cây bàng Hỏa Lò'
+        };
+      }
+    }
+
+    if (subject === 'may_chem') {
+      if (aspect === 'SPECIFICATION') {
+        return {
+          answer: 'Cỗ máy chém tại Nhà tù Hỏa Lò có chiều cao thực tế gần 4 mét, cột dựng bằng hai thanh gỗ lim song song với lưỡi dao bằng thép vát chéo nặng 50kg gắn kèm quả tạ chì trượt từ trên đỉnh xuống.',
+          sourceId: 'DOSSIER_MAY_CHEM_SPEC',
+          source: 'Hồ sơ Hiện vật Cỗ máy chém Hỏa Lò'
+        };
+      }
+      if (aspect === 'ORIGIN') {
+        return {
+          answer: 'Cỗ máy chém được thực dân Pháp đưa sang Việt Nam từ đầu thế kỷ 20. Máy được thiết kế cơ động để tháo rời vận chuyển lưu động đi hành quyết khắp Bắc Kỳ, tiêu biểu là việc đưa lên Yên Bái sáng 17/6/1930 để hành quyết nhà yêu nước Nguyễn Thái Học cùng 12 nghĩa sĩ khởi nghĩa Yên Bái.',
+          sourceId: 'DOSSIER_MAY_CHEM_ORIGIN',
+          source: 'Hồ sơ Hiện vật Cỗ máy chém Hỏa Lò'
+        };
+      }
+      if (aspect === 'PURPOSE') {
+        return {
+          answer: 'Thực dân Pháp sử dụng cỗ máy chém tại Hỏa Lò như một công cụ khủng bố tinh thần tàn bạo nhằm đàn áp phong trào đấu tranh giải phóng dân tộc của nhân dân Việt Nam.',
+          sourceId: 'DOSSIER_MAY_CHEM_PURPOSE',
+          source: 'Hồ sơ Hiện vật Cỗ máy chém Hỏa Lò'
+        };
+      }
+      if (aspect === 'COMPARISON_EXPANSION') {
+        return {
+          answer: 'Ngoài cỗ máy chém, tại Nhà tù Hỏa Lò còn có nhiều hiện vật và khu vực giam giữ trừng phạt khét tiếng khác như: Ngục tối Cachot (nơi cùm dốc ngược chân trong bóng tối hoàn toàn), Dãy xà lim tử hình Khu D, và các bộ cùm sắt chân dài trong phòng giam tập thể nam.',
+          sourceId: 'DOSSIER_MAY_CHEM_COMPARISON',
+          source: 'Hồ sơ Hiện vật Giam giữ & Tra tấn Hỏa Lò'
+        };
+      }
+    }
+
+    return null;
   }
 }
 

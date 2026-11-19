@@ -1,9 +1,10 @@
 /**
- * 2Guide Answer Validator Engine
- * Kiểm duyệt và chuẩn hóa chất lượng câu trả lời trước khi gửi đến du khách:
- * 1. Chống bịa đặt (Anti-hallucination): Kiểm tra các số liệu, nhân vật, địa danh cốt lõi.
- * 2. Lọc bỏ văn mẫu máy móc (Anti-boilerplate): Xóa bỏ các câu mở đầu/kết thúc lặp lại.
- * 3. Kiểm tra tính chuẩn mực dịch vụ khách hàng (Customer Care standards).
+ * 2Guide Answer Validator Engine v6.0 (Enterprise Claim-Level Verification)
+ * 
+ * - Chống bịa đặt (Anti-hallucination) & Clean Replacement khi phát hiện lỗi dữ kiện.
+ * - Lọc bỏ văn mẫu máy móc (Anti-boilerplate).
+ * - Claim-level Verification: Tách mệnh đề độc lập và kiểm tra căn cứ.
+ * - Hiệu chỉnh độ tin cậy thực tế (Confidence Calibration), không mặc định HIGH.
  */
 
 class AnswerValidator {
@@ -39,6 +40,10 @@ class AnswerValidator {
         cleanReplacement: 'Trong cuộc vượt ngục cống ngầm đêm Noel 24/12/1951 của 16 tử tù chính trị, chỉ có 5 đồng chí thoát ra vùng tự do kháng chiến an toàn, số còn lại đã bị địch lùng bắt lại.'
       },
       {
+        check: (text) => text.toLowerCase().includes('phan bội châu') && (text.toLowerCase().includes('tử hình tại hỏa lò') || text.toLowerCase().includes('chém tại hỏa lò')),
+        cleanReplacement: 'Cụ Phan Bội Châu sau đó được thực dân Pháp đưa về an trí tại Bến Ngự (Huế) cho đến khi qua đời năm 1940, không bị xử tử tại Hỏa Lò.'
+      },
+      {
         check: (text) => text.toLowerCase().includes('máy chém') && (text.toLowerCase().includes('15m') || text.toLowerCase().includes('15 mét') || text.toLowerCase().includes('5 tấn')),
         cleanReplacement: 'Cỗ máy chém tại Nhà tù Hỏa Lò có chiều cao thực tế gần 4 mét và lưỡi dao bằng thép vát chéo nặng 50kg trượt trong hai cột gỗ lim.'
       },
@@ -47,6 +52,31 @@ class AnswerValidator {
         cleanReplacement: 'Búp bàng non và lá bàng bánh tẻ tại Hỏa Lò được các tù nhân dùng làm thuốc chữa bệnh kiết lỵ và tiêu chảy đường ruột rất hiệu nghiệm, không dùng để chữa ung thư.'
       }
     ];
+  }
+
+  /**
+   * Tách câu trả lời thành các mệnh đề (claims) độc lập
+   */
+  extractClaims(text) {
+    if (!text || typeof text !== 'string') return [];
+    return text
+      .split(/[.;\n]+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 10);
+  }
+
+  /**
+   * Hiệu chỉnh độ tin cậy thực tế (Confidence Calibration)
+   */
+  calibrateConfidence({ hasExactMatch, isPolicy, isScenario, isLLM, claims = [] }) {
+    if (hasExactMatch || isPolicy || isScenario) {
+      return { confidence: 'HIGH', score: 0.96 };
+    }
+    if (isLLM) {
+      if (claims.length >= 2) return { confidence: 'MEDIUM', score: 0.82 };
+      return { confidence: 'MEDIUM', score: 0.75 };
+    }
+    return { confidence: 'LOW', score: 0.55 };
   }
 
   /**

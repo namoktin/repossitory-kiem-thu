@@ -4,8 +4,14 @@
   "description": "Bo cong cu kiem thu chiu tai 1000 request AI cho 2Guide",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "cli": "node stress_test.js --url http://localhost:4000/api/chat/ask --total 1000 --concurrency 20"
+    "start": "node smart_ai_server.js",
+    "test": "node tests/unit_tests.js && node tests/integration_tests.js && node tests/security_tests.js",
+    "test:unit": "node tests/unit_tests.js",
+    "test:integration": "node tests/integration_tests.js",
+    "test:security": "node tests/security_tests.js",
+    "benchmark": "python benchmark/run_comprehensive_benchmark.py",
+    "benchmark:gt500": "python run_test_500.py",
+    "cli": "node stress_test.js --url http://localhost:4001/api/chat/ask --total 1000 --concurrency 20"
   },
   "keywords": [
     "stress-test",

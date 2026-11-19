@@ -1,7 +1,11 @@
 /**
- * 2Guide Multi-Feature Intent Classifier
- * Phân loại chính xác 14+ ý định của khách tham quan dựa trên phân tích đa chiều:
- * Cấu trúc ngữ pháp, từ khóa thực thể, cảm xúc/phàn nàn, và ngữ cảnh hội thoại.
+ * 2Guide Multi-Feature Semantic Intent Classifier v6.0 (Enterprise Edition)
+ * 
+ * Phân tích câu hỏi người dùng theo 4 chiều:
+ * 1. Intent: 17 ý định cốt lõi (Lịch sử, Hiện vật, Giải thích, Khiếu nại, Trợ năng, Vé, Giờ...).
+ * 2. SubIntent: Phân hóa chuyên sâu CSKH và Hỗ trợ khẩn cấp.
+ * 3. Subject: Thực thể chính (may_chem, cay_bang, cong_ngam, phi_cong, cachot, xa_lim, ve, gio...).
+ * 4. Aspect: Khía cạnh truy vấn (SPECIFICATION, ORIGIN, PURPOSE, SIGNIFICANCE, DAILY_PRISON_LIFE, POLICY_DETAIL...).
  */
 
 const nlp = require('./nlp_processor');
@@ -50,15 +54,67 @@ class IntentClassifier {
     ];
   }
 
+  extractSubject(norm) {
+    if (norm.includes('may chem') || norm.includes('guillotine') || norm.includes('luoi dao') || norm.includes('cot go')) return 'may_chem';
+    if (norm.includes('cay bang') || norm.includes('la bang') || norm.includes('hat bang') || norm.includes('canh bang') || norm.includes('tra bang') || norm.includes('thach bang')) return 'cay_bang';
+    if (norm.includes('cong ngam') || norm.includes('vuot nguc') || norm.includes('nap cong')) return 'cong_ngam';
+    if (norm.includes('phi cong') || norm.includes('hanoi hilton') || norm.includes('mccain') || norm.includes('peterson')) return 'phi_cong';
+    if (norm.includes('cachot') || norm.includes('nguc toi') || norm.includes('ham toi') || norm.includes('biet giam')) return 'cachot';
+    if (norm.includes('xa lim') || norm.includes('tu hinh') || norm.includes('hoang van thu') || norm.includes('nguyen thai hoc') || norm.includes('nguyen duc canh')) return 'xa_lim_tu_hinh';
+    if (norm.includes('maison centrale') || norm.includes('cong so 1') || norm.includes('cong chinh') || norm.includes('phu khanh') || norm.includes('lang hoa lo') || norm.includes('tuong da')) return 'maison_centrale';
+    if (norm.includes('but') || norm.includes('gach non') || norm.includes('muoi than') || norm.includes('bao chi') || norm.includes('ao len')) return 'hien_vat_sinh_hoat';
+    if (norm.includes('ve') || norm.includes('gia ve') || norm.includes('tour dem')) return 've_tham_quan';
+    if (norm.includes('gio mo') || norm.includes('dong cua') || norm.includes('tet nguyen dan') || norm.includes('ngay le')) return 'gio_mo_cua';
+    if (norm.includes('gui do') || norm.includes('balo') || norm.includes('hanh ly')) return 'gui_do';
+    if (norm.includes('ve sinh') || norm.includes('toilet') || norm.includes('wc')) return 'nha_ve_sinh';
+    if (norm.includes('chup anh') || norm.includes('quay phim') || norm.includes('flash')) return 'quy_dinh_chup_anh';
+    if (norm.includes('audioguide') || norm.includes('tai nghe') || norm.includes('thuyet minh tu dong')) return 'audioguide';
+    return null;
+  }
+
+  extractAspect(norm) {
+    if (norm.includes('nang bao nhieu') || norm.includes('cao bao nhieu') || norm.includes('kich thuoc') || norm.includes('trong luong') || norm.includes('chat lieu') || norm.includes('cau tao') || norm.includes('lam bang gi')) {
+      return 'SPECIFICATION';
+    }
+    if (norm.includes('nguon goc') || norm.includes('xuat xu') || norm.includes('dua vao day khi nao') || norm.includes('khi nao dua vao') || norm.includes('nam nao') || norm.includes('xay dung nam nao') || norm.includes('vi sao lai goi la') || norm.includes('tai sao co ten')) {
+      return 'ORIGIN';
+    }
+    if (norm.includes('dung de lam gi') || norm.includes('su dung de lam gi') || norm.includes('su dung nhu the nao') || norm.includes('cong dung') || norm.includes('chuc nang')) {
+      return 'PURPOSE';
+    }
+    if (norm.includes('y nghia') || norm.includes('dac biet') || norm.includes('bieu tuong') || norm.includes('vi sao nguoi ta nhac nhieu') || norm.includes('tai sao lai co y nghia')) {
+      return 'SIGNIFICANCE';
+    }
+    if (norm.includes('cuoc song') || norm.includes('sinh hoat') || norm.includes('chua benh') || norm.includes('chong doi') || norm.includes('khiet ly') || norm.includes('viet chu')) {
+      return 'DAILY_PRISON_LIFE';
+    }
+    if (norm.includes('tuong tu') || norm.includes('hien vat nao khac') || norm.includes('co gi giong') || norm.includes('khac khong')) {
+      return 'COMPARISON_EXPANSION';
+    }
+    if (norm.includes('gia bao nhieu') || norm.includes('bao nhieu tien') || norm.includes('may gio') || norm.includes('quy dinh')) {
+      return 'POLICY_DETAIL';
+    }
+    if (norm.includes('lam the nao') || norm.includes('o dau') || norm.includes('gap ai') || norm.includes('ho tro')) {
+      return 'ACTION_REQUEST';
+    }
+    return 'GENERAL';
+  }
+
   classify(rawQuestion, context = null) {
     const raw = nlp.cleanRawText(rawQuestion);
     const norm = ' ' + nlp.normalize(raw) + ' ';
     const lower = raw.toLowerCase();
 
+    const subject = this.extractSubject(norm) || context?.lastTopic || null;
+    const aspect = this.extractAspect(norm);
+
     // 0. Kiểm tra Prompt Injection / Phá rào bảo mật
     if (nlp.detectPromptInjection(rawQuestion)) {
       return {
         intent: INTENTS.PROMPT_INJECTION,
+        subIntent: null,
+        subject: null,
+        aspect: 'SECURITY',
         confidence: 0.99,
         reason: 'Phát hiện yêu cầu can thiệp câu lệnh hệ thống hoặc giả mạo vai trò'
       };
@@ -69,6 +125,9 @@ class IntentClassifier {
         (norm.includes('ve') || norm.includes('gia') || norm.includes('hoa lo'))) {
       return {
         intent: INTENTS.EXPIRED_POLICY,
+        subIntent: 'EXPIRED_TICKET_PRICE',
+        subject: 've_tham_quan',
+        aspect: 'POLICY_DETAIL',
         confidence: 0.98,
         reason: 'Khách hỏi về chính sách giá vé cũ giai đoạn trước năm 2016 đã hết hiệu lực'
       };
@@ -91,6 +150,10 @@ class IntentClassifier {
     if (isVague) {
       return {
         intent: INTENTS.AMBIGUOUS_QUERY,
+        subIntent: null,
+        subject: null,
+        aspect: 'CLARIFICATION_NEEDED',
+        missingInfo: 'EXHIBIT_OR_AREA_NAME',
         confidence: 0.9,
         reason: 'Câu hỏi thiếu thông tin cụ thể để xác định hiện vật hoặc nhu cầu'
       };
@@ -104,18 +167,24 @@ class IntentClassifier {
     if (isGreeting) {
       return {
         intent: INTENTS.GREETING,
+        subIntent: null,
+        subject: null,
+        aspect: 'POLITENESS',
         confidence: 0.95,
         reason: 'Lời chào hỏi hoặc cảm ơn thông thường'
       };
     }
 
-    // 3. Ngoài phạm vi di tích (Out Of Scope) - KIỂM TRA SỚM ĐỂ TRÁNH NHẬN DIỆN NHẦM VÀO GIỜ MỞ CỬA / VÉ
+    // 3. Ngoài phạm vi di tích (Out Of Scope)
     const hasHoaLoWhitelist = this.hoaLoWhitelist.some(w => norm.includes(' ' + w + ' ') || norm.includes(w));
     if (!hasHoaLoWhitelist) {
       const isOutOfScope = this.outOfScopeEntities.some(e => norm.includes(' ' + e + ' ') || norm.includes(e));
       if (isOutOfScope) {
         return {
           intent: INTENTS.OUT_OF_SCOPE,
+          subIntent: null,
+          subject: null,
+          aspect: 'OUT_OF_BOUNDS',
           confidence: 0.95,
           reason: 'Câu hỏi hoàn toàn nằm ngoài phạm vi Di tích Nhà tù Hỏa Lò'
         };
@@ -141,6 +210,7 @@ class IntentClassifier {
       let urgency = 'NORMAL';
       if (norm.includes('thai do') || norm.includes('nhan vien') || norm.includes('thieu nhiet tinh') || norm.includes('rude')) {
         subIntent = 'STAFF_ATTITUDE';
+        urgency = 'HIGH';
       } else if (norm.includes('bi re') || norm.includes('re mot ben') || norm.includes('hong tai nghe') || norm.includes('tai nghe bi') || norm.includes('audioguide')) {
         subIntent = 'AUDIO_DEVICE';
         urgency = 'IMMEDIATE_ACTION';
@@ -155,6 +225,8 @@ class IntentClassifier {
       return {
         intent: INTENTS.CUSTOMER_COMPLAINT,
         subIntent,
+        subject: 'service_care',
+        aspect: 'COMPLAINT_FEEDBACK',
         urgency,
         confidence: 0.94,
         reason: `Khách hàng khiếu nại/góp ý phân loại: ${subIntent}`
@@ -191,13 +263,15 @@ class IntentClassifier {
       return {
         intent: INTENTS.CUSTOMER_ASSISTANCE,
         subIntent,
+        subject: 'assistance_emergency',
+        aspect: 'ASSISTANCE_REQUEST',
         urgency,
         confidence: 0.95,
         reason: `Khách hàng cần hỗ trợ nghiệp vụ: ${subIntent} (Mức độ: ${urgency})`
       };
     }
 
-    // 5. Tư vấn hành trình & Lộ trình (Tour Recommendation) - Đặt trước Trợ năng để bắt câu hỏi về lộ trình
+    // 6. Tư vấn hành trình & Lộ trình (Tour Recommendation)
     const recommendationSignals = [
       'nen tham quan gi truoc', 'it thoi gian', 'co 30 phut', 'co 45 phut', 'co 1 tieng',
       'goi y lo trinh', 'tham quan theo nhom', 'di cung gia dinh', 'co nen di tour dem',
@@ -211,12 +285,15 @@ class IntentClassifier {
     if (recommendationSignals.some(s => norm.includes(s))) {
       return {
         intent: INTENTS.TOUR_RECOMMENDATION,
+        subIntent: null,
+        subject: 'lo_trinh_tham_quan',
+        aspect: 'TOUR_PLANNING',
         confidence: 0.90,
         reason: 'Khách cần gợi ý lộ trình hoặc phân bổ thời gian hợp lý'
       };
     }
 
-    // 6. Hỗ trợ người cao tuổi, trẻ em, xe lăn & khiếm thị (Accessibility Support)
+    // 7. Hỗ trợ người cao tuổi, trẻ em, xe lăn & khiếm thị (Accessibility Support)
     const accessibilitySignals = [
       'xe lan', 'khuyet tat', 'nguoi tan tat', 'nguoi cao tuoi', 'nguoi gia',
       'ong ba gia', 'tre em', 'tre con', 'con nho', 'tre nho', 'tre so sinh', 'xe day tre em', 'xe day em be', 'xe day', 'em be', 'bac thang',
@@ -226,12 +303,15 @@ class IntentClassifier {
     if (accessibilitySignals.some(s => norm.includes(s))) {
       return {
         intent: INTENTS.ACCESSIBILITY_SUPPORT,
+        subIntent: null,
+        subject: 'accessibility',
+        aspect: 'ACCESSIBILITY_NEEDS',
         confidence: 0.92,
         reason: 'Khách hàng hỏi về khả năng tiếp cận và hỗ trợ đối tượng đặc thù'
       };
     }
 
-    // 7. Thông tin vé (Ticket Information)
+    // 8. Thông tin vé (Ticket Information)
     const ticketSignals = [
       'gia ve', 've vao cong', 'mua ve', 'tien ve', 've tham quan', 've tour dem', 've xem', 'mua o dau', 'gia bao nhieu',
       'hoc sinh', 'sinh vien', 'hssv', 'giam gia ve', 'mien phi ve', 'dat ve truoc', 'dat ve',
@@ -241,12 +321,15 @@ class IntentClassifier {
     if (ticketSignals.some(s => norm.includes(s)) && !norm.includes('thoi tiet') && !norm.includes('may bay')) {
       return {
         intent: INTENTS.TICKET_INFORMATION,
+        subIntent: null,
+        subject: 've_tham_quan',
+        aspect: 'POLICY_DETAIL',
         confidence: 0.95,
         reason: 'Hỏi về biểu phí, vé vào cổng và chính sách miễn giảm'
       };
     }
 
-    // 8. Giờ mở cửa & Lịch hoạt động (Opening Hours)
+    // 9. Giờ mở cửa & Lịch hoạt động (Opening Hours)
     const hoursSignals = [
       'gio mo cua', 'mo cua luc may gio', 'mo cua may gio', 'may gio mo cua', 'dong cua', 'may gio dong cua',
       'co nghi trua khong', 'ngay le co mo khong', 'tet co mo khong', 'ngay le', 'tet nguyen dan', 'quoc khanh',
@@ -256,12 +339,15 @@ class IntentClassifier {
     if (hoursSignals.some(s => norm.includes(s))) {
       return {
         intent: INTENTS.OPENING_HOURS,
+        subIntent: null,
+        subject: 'gio_mo_cua',
+        aspect: 'POLICY_DETAIL',
         confidence: 0.95,
         reason: 'Hỏi về khung giờ và ngày mở cửa đón khách'
       };
     }
 
-    // 9. Cơ sở vật chất & Tiện ích (Facility Support)
+    // 10. Cơ sở vật chất & Tiện ích (Facility Support)
     const facilitySignals = [
       'nha ve sinh', 'toilet', 'wc', 'gui do', 'cho gui do', 'tu gui do',
       'gui balo', 'gui hanh ly', 'nuoc uong', 'mua nuoc', 'quay luu niem',
@@ -272,12 +358,15 @@ class IntentClassifier {
     if (facilitySignals.some(s => norm.includes(s))) {
       return {
         intent: INTENTS.FACILITY_SUPPORT,
+        subIntent: null,
+        subject: subject || 'tien_ich_co_so_vat_chat',
+        aspect: 'FACILITY_INFO',
         confidence: 0.92,
         reason: 'Hỏi về vị trí và quy định các tiện ích phục vụ khách'
       };
     }
 
-    // 10. Hướng dẫn tham quan (Visit Guidance)
+    // 11. Hướng dẫn tham quan (Visit Guidance)
     const guidanceSignals = [
       'di nhu the nao', 'loi di', 'huong di', 'tim khu vuc', 'cach quan sat',
       'audioguide su dung the nao', 'thuyet minh tu dong', 'quy dinh tham quan',
@@ -287,11 +376,13 @@ class IntentClassifier {
     if (guidanceSignals.some(s => norm.includes(s))) {
       return {
         intent: INTENTS.VISIT_GUIDANCE,
+        subIntent: null,
+        subject: subject || 'huong_dan_tham_quan',
+        aspect: 'GUIDELINES',
         confidence: 0.88,
         reason: 'Hướng dẫn tham quan, nội quy hoặc cách di chuyển'
       };
     }
-
 
     // 12. Giải thích nguyên nhân & Bối cảnh (Historical Explanation)
     const explanationSignals = [
@@ -301,6 +392,9 @@ class IntentClassifier {
     if (explanationSignals.some(s => norm.includes(s))) {
       return {
         intent: INTENTS.HISTORICAL_EXPLANATION,
+        subIntent: null,
+        subject: subject || 'lich_su_hoa_lo',
+        aspect: aspect || 'HISTORICAL_CONTEXT',
         confidence: 0.88,
         reason: 'Khách hỏi lý do, nguồn gốc hoặc ý nghĩa của sự kiện/tên gọi'
       };
@@ -316,6 +410,9 @@ class IntentClassifier {
     if (exhibitSignals.some(s => norm.includes(s))) {
       return {
         intent: INTENTS.EXHIBIT_INFORMATION,
+        subIntent: null,
+        subject: subject || 'hien_vat',
+        aspect: aspect || 'SPECIFICATION',
         confidence: 0.90,
         reason: 'Khách hỏi về quy cách, chất liệu, tính năng của hiện vật'
       };
@@ -324,6 +421,9 @@ class IntentClassifier {
     // 14. Sự kiện & Nhân vật lịch sử (Historical Fact)
     return {
       intent: INTENTS.HISTORICAL_FACT,
+      subIntent: null,
+      subject: subject || 'lich_su_su_kien',
+      aspect: aspect || 'FACTUAL',
       confidence: 0.85,
       reason: 'Câu hỏi tra cứu nhân vật, niên đại hoặc sự kiện lịch sử'
     };
