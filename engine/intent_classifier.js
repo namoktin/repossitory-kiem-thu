@@ -21,7 +21,9 @@ const INTENTS = {
   GREETING: 'GREETING',
   FOLLOW_UP: 'FOLLOW_UP',
   OUT_OF_SCOPE: 'OUT_OF_SCOPE',
-  AMBIGUOUS_QUERY: 'AMBIGUOUS_QUERY'
+  AMBIGUOUS_QUERY: 'AMBIGUOUS_QUERY',
+  PROMPT_INJECTION: 'PROMPT_INJECTION',
+  EXPIRED_POLICY: 'EXPIRED_POLICY'
 };
 
 class IntentClassifier {
@@ -52,6 +54,25 @@ class IntentClassifier {
     const raw = nlp.cleanRawText(rawQuestion);
     const norm = ' ' + nlp.normalize(raw) + ' ';
     const lower = raw.toLowerCase();
+
+    // 0. Kiểm tra Prompt Injection / Phá rào bảo mật
+    if (nlp.detectPromptInjection(rawQuestion)) {
+      return {
+        intent: INTENTS.PROMPT_INJECTION,
+        confidence: 0.99,
+        reason: 'Phát hiện yêu cầu can thiệp câu lệnh hệ thống hoặc giả mạo vai trò'
+      };
+    }
+
+    // 0.1. Kiểm tra chính sách cũ / hết hạn (EXPIRED_POLICY)
+    if ((norm.includes('30 000') || norm.includes('30k') || norm.includes('truoc 2016') || norm.includes('2016')) &&
+        (norm.includes('ve') || norm.includes('gia') || norm.includes('hoa lo'))) {
+      return {
+        intent: INTENTS.EXPIRED_POLICY,
+        confidence: 0.98,
+        reason: 'Khách hỏi về chính sách giá vé cũ giai đoạn trước năm 2016 đã hết hiệu lực'
+      };
+    }
 
     // 1. Kiểm tra câu hỏi quá ngắn hoặc mơ hồ
     const tokens = norm.trim().split(' ').filter(Boolean);
@@ -101,25 +122,46 @@ class IntentClassifier {
       }
     }
 
-    // 4. Khiếu nại, phản ánh không hài lòng (Customer Complaint)
+    // 4. Khiếu nại, phản ánh không hài lòng & Đóng góp ý kiến (Customer Complaint)
     const complaintSignals = [
       'khong hai long', 'khong tot', 'trai nghiem te', 'dich vu te', 'that vong',
       'buc minh', 'kho chiu', 'thai do nhan vien', 'thieu nhiet tinh', 'thai do khong tot',
       'thai do kem', 'phuc vu kem', 'qua dong', 'chen chuc', 'on ao', 'khieu nai',
-      'gop y phan anh', 'mat tien oan', 'rat te', 'khong dang tien',
+      'gop y phan anh', 'mat tien oan', 'rat te', 'khong dang tien', 'hoan tien', 'tra ve',
       'bi re', 're mot ben', 're tai', 're tieng', 'hong tai nghe', 'tai nghe bi', 'khong nghe duoc', 'tai nghe hong', 'loi tai nghe',
+      'dong gop y kien', 'dong gop', 'gap ban quan ly', 'ban quan ly', 'gap to truong', 'so gop y', 'phan anh', 'y kien ve dich vu', 'gop y',
       'dissatisfied', 'bad experience', 'terrible', 'awful', 'complaint', 'rude staff',
-      'poor service', 'not satisfied', 'unhappy', 'noisy', 'crowded', 'broken headphone', 'audio crackling'
+      'poor service', 'not satisfied', 'unhappy', 'noisy', 'crowded', 'broken headphone', 'audio crackling', 'feedback'
     ];
-    if (complaintSignals.some(s => norm.includes(s))) {
+    const isFeedbackOrComplaint = complaintSignals.some(s => norm.includes(s)) ||
+      (norm.includes('ban quan ly') && (norm.includes('gap') || norm.includes('gop y') || norm.includes('y kien') || norm.includes('phan anh') || norm.includes('dong gop')));
+
+    if (isFeedbackOrComplaint) {
+      let subIntent = 'SERVICE_QUALITY';
+      let urgency = 'NORMAL';
+      if (norm.includes('thai do') || norm.includes('nhan vien') || norm.includes('thieu nhiet tinh') || norm.includes('rude')) {
+        subIntent = 'STAFF_ATTITUDE';
+      } else if (norm.includes('bi re') || norm.includes('re mot ben') || norm.includes('hong tai nghe') || norm.includes('tai nghe bi') || norm.includes('audioguide')) {
+        subIntent = 'AUDIO_DEVICE';
+        urgency = 'IMMEDIATE_ACTION';
+      } else if (norm.includes('qua dong') || norm.includes('chen chuc') || norm.includes('on ao') || norm.includes('ngot ngat') || norm.includes('crowded')) {
+        subIntent = 'OVERCROWDING';
+      } else if (norm.includes('hoan tien') || norm.includes('tra ve') || norm.includes('doi ve') || norm.includes('refund')) {
+        subIntent = 'REFUND_REQUEST';
+      } else if (norm.includes('ban quan ly') || norm.includes('so gop y') || norm.includes('gop y') || norm.includes('dong gop') || norm.includes('y kien') || norm.includes('khieu nai')) {
+        subIntent = 'MANAGEMENT_FEEDBACK';
+      }
+
       return {
         intent: INTENTS.CUSTOMER_COMPLAINT,
-        confidence: 0.92,
-        reason: 'Khách hàng bày tỏ sự không hài lòng hoặc khiếu nại dịch vụ'
+        subIntent,
+        urgency,
+        confidence: 0.94,
+        reason: `Khách hàng khiếu nại/góp ý phân loại: ${subIntent}`
       };
     }
 
-    // 5. Hỗ trợ khẩn cấp / Mất đồ / Tìm người (Customer Assistance)
+    // 5. Hỗ trợ khẩn cấp / Mất đồ / Cấp cứu y tế (Customer Assistance)
     const isLostItem = (
       !norm.includes('ban roi') && !norm.includes('may bay') && !norm.includes('phi cong') &&
       (norm.includes('mat') || norm.includes('that lac') || norm.includes('quen') || norm.includes('roi') || norm.includes('lost')) &&
@@ -128,15 +170,30 @@ class IntentClassifier {
     const assistanceSignals = [
       'mat do', 'that lac', 'quen do', 'roi do', 'roi vi', 'mat dien thoai',
       'lac nguoi', 'lac tre em', 'can giup do khan cap', 'lien he ban quan ly',
-      'gap nhan vien', 'gap bao ve', 'so cap cuu', ' y te ', 'phong y te',
-      'bi lac', 'lac con', 'tim be', 'tim con', 'lac chau', 'lac be', 'tim chau',
+      'gap nhan vien', 'gap bao ve', 'so cap cuu', 'cap cuu', 'say nang', 'ngat xiu', ' ngat ', 'chong mat', ' y te ', 'phong y te',
+      'bi lac', 'lac con', 'tim be', 'tim con', 'lac chau', 'lac be', 'tim chau', 'lien he voi huong dan vien', 'lien he huong dan vien',
       'lost item', 'lost my', 'lost phone', 'lost wallet', 'emergency', 'lost and found', 'first aid', ' medical ', 'lost child'
     ];
     if (isLostItem || assistanceSignals.some(s => norm.includes(s))) {
+      let subIntent = 'GENERAL_SUPPORT';
+      let urgency = 'NORMAL';
+      if (norm.includes('lac con') || norm.includes('lac tre') || norm.includes('tim be') || norm.includes('tim con') || norm.includes('lac chau') || norm.includes('lost child')) {
+        subIntent = 'LOST_CHILD_URGENT';
+        urgency = 'URGENT';
+      } else if (norm.includes('cap cuu') || norm.includes('say nang') || norm.includes('ngat xiu') || norm.includes(' ngat ') || norm.includes('so cuu') || norm.includes(' y te ') || norm.includes('chong mat') || norm.includes('medical')) {
+        subIntent = 'MEDICAL_EMERGENCY';
+        urgency = 'CRITICAL';
+      } else if (isLostItem || norm.includes('mat do') || norm.includes('that lac') || norm.includes('roi vi') || norm.includes('quen do')) {
+        subIntent = 'LOST_ITEM';
+        urgency = 'ACTIONABLE';
+      }
+
       return {
         intent: INTENTS.CUSTOMER_ASSISTANCE,
+        subIntent,
+        urgency,
         confidence: 0.95,
-        reason: 'Khách hàng cần hỗ trợ đặc biệt (mất đồ, tìm người, y tế)'
+        reason: `Khách hàng cần hỗ trợ nghiệp vụ: ${subIntent} (Mức độ: ${urgency})`
       };
     }
 
@@ -159,11 +216,11 @@ class IntentClassifier {
       };
     }
 
-    // 6. Hỗ trợ người cao tuổi, trẻ em, xe lăn (Accessibility Support)
+    // 6. Hỗ trợ người cao tuổi, trẻ em, xe lăn & khiếm thị (Accessibility Support)
     const accessibilitySignals = [
       'xe lan', 'khuyet tat', 'nguoi tan tat', 'nguoi cao tuoi', 'nguoi gia',
-      'ong ba gia', 'tre nho', 'tre so sinh', 'xe day tre em', 'xe day em be', 'xe day', 'em be', 'bac thang',
-      'loi di rieng', 'co cho ngoi nghi khong', 'ghe ngoi nghi',
+      'ong ba gia', 'tre em', 'tre con', 'con nho', 'tre nho', 'tre so sinh', 'xe day tre em', 'xe day em be', 'xe day', 'em be', 'bac thang',
+      'loi di rieng', 'co cho ngoi nghi khong', 'ghe ngoi nghi', 'khiem thi', 'khiem thinh', 'nguoi mu', 'gay dan duong',
       'wheelchair', 'disabled', 'handicapped', 'elderly', 'senior', 'baby stroller', 'children', 'kids', 'ramp'
     ];
     if (accessibilitySignals.some(s => norm.includes(s))) {

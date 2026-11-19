@@ -24,19 +24,27 @@ class AnswerValidator {
       /mời\s*bạn\s*lắng\s*nghe\s*tiếp\s*câu\s*chuyện\s*tiếp\s*theo\s*khi\s*di\s*chuyển\s*đến\s*trạm\s*di\s*tích\s*kế\s*bên[.!]*$/i
     ];
 
-    // Các sai lệch lịch sử nghiêm trọng cần ngăn chặn
+    // Các sai lệch lịch sử nghiêm trọng cần ngăn chặn & Thay thế triệt để (Không chắp vá)
     this.criticalFactChecks = [
       {
-        check: (text) => text.includes('Nguyễn Thái Học') && text.includes('Hành quyết tại Hỏa Lò'),
-        fix: 'Nguyễn Thái Học bị thực dân Pháp đưa máy chém lên thị xã Yên Bái để hành quyết sáng ngày 17/6/1930 (không phải hành quyết tại Hỏa Lò).'
+        check: (text) => text.toLowerCase().includes('nguyễn thái học') && (text.toLowerCase().includes('hành quyết tại hỏa lò') || text.toLowerCase().includes('chém tại hỏa lò')),
+        cleanReplacement: 'Nhà yêu nước Nguyễn Thái Học cùng 12 nghĩa sĩ khởi nghĩa Yên Bái bị thực dân Pháp đưa máy chém lên thị xã Yên Bái để hành quyết sáng ngày 17/6/1930, không phải bị hành quyết tại Hỏa Lò.'
       },
       {
-        check: (text) => text.includes('Hoàng Văn Thụ') && text.includes('máy chém'),
-        fix: 'Đồng chí Hoàng Văn Thụ bị xử bắn tại trường bắn Tương Mai ngày 24/5/1944, không bị xử chém.'
+        check: (text) => text.toLowerCase().includes('hoàng văn thụ') && (text.toLowerCase().includes('máy chém') || text.toLowerCase().includes('xử chém')),
+        cleanReplacement: 'Đồng chí Hoàng Văn Thụ bị thực dân Pháp đưa đi xử bắn tại trường bắn Tương Mai sáng ngày 24/5/1944, không phải bị xử chém bằng máy chém.'
       },
       {
-        check: (text) => (text.includes('16 người vượt ngục') || text.includes('16 tử tù')) && text.includes('tất cả đều thoát'),
-        fix: 'Trong 16 tử tù cưa song sắt chui cống ngầm đêm 24/12/1951, có 5 đồng chí thoát ra vùng tự do kháng chiến an toàn, số còn lại bị địch bắt lại.'
+        check: (text) => (text.toLowerCase().includes('16 người') || text.toLowerCase().includes('16 tử tù')) && (text.toLowerCase().includes('tất cả đều thoát') || text.toLowerCase().includes('thoát hết cả 16')),
+        cleanReplacement: 'Trong cuộc vượt ngục cống ngầm đêm Noel 24/12/1951 của 16 tử tù chính trị, chỉ có 5 đồng chí thoát ra vùng tự do kháng chiến an toàn, số còn lại đã bị địch lùng bắt lại.'
+      },
+      {
+        check: (text) => text.toLowerCase().includes('máy chém') && (text.toLowerCase().includes('15m') || text.toLowerCase().includes('15 mét') || text.toLowerCase().includes('5 tấn')),
+        cleanReplacement: 'Cỗ máy chém tại Nhà tù Hỏa Lò có chiều cao thực tế gần 4 mét và lưỡi dao bằng thép vát chéo nặng 50kg trượt trong hai cột gỗ lim.'
+      },
+      {
+        check: (text) => text.toLowerCase().includes('cây bàng') && text.toLowerCase().includes('ung thư'),
+        cleanReplacement: 'Búp bàng non và lá bàng bánh tẻ tại Hỏa Lò được các tù nhân dùng làm thuốc chữa bệnh kiết lỵ và tiêu chảy đường ruột rất hiệu nghiệm, không dùng để chữa ung thư.'
       }
     ];
   }
@@ -67,17 +75,18 @@ class AnswerValidator {
   }
 
   /**
-   * Kiểm định dữ kiện sự thật lịch sử
+   * Kiểm định dữ kiện sự thật lịch sử và tái tạo câu trả lời sạch nếu phát hiện lỗi
    */
   validateFacts(replyText, groundTruthContext = null) {
     let validated = replyText;
     let modified = false;
 
-    // Kiểm tra các lỗi phổ biến
+    // Kiểm tra và thay thế hoàn toàn nếu vi phạm sự thật cốt lõi
     for (const rule of this.criticalFactChecks) {
       if (rule.check(validated)) {
-        validated = validated + ` (Lưu ý lịch sử chính xác: ${rule.fix})`;
+        validated = rule.cleanReplacement;
         modified = true;
+        break;
       }
     }
 

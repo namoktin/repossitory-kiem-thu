@@ -3,7 +3,7 @@
 
 * **Mục tiêu kiểm thử:** Hệ thống AI Hướng dẫn viên Ảo (Port 4001: `http://localhost:4001/api/chat/ask`)
 * **Tiêu chuẩn kiểm định:** Đối chiếu trực tiếp với bộ đáp án tham chiếu chuẩn lịch sử (Ground Truth) từ file `Bao_cao_doi_chieu_danh_gia_AI_2Guide_Hoa_Lo.xlsx`
-* **Thời gian thực hiện:** 14:22:39 19/11/2026
+* **Thời gian thực hiện:** 15:10:42 19/11/2026
 * **Tổng số câu hỏi kiểm thử:** **500 câu hỏi**
 
 ---
@@ -17,8 +17,8 @@
 | **❌ Sai lệch / Lạc đề / Lỗi sự kiện** | 25.2% (126/500 câu) | **0 câu (0.0%)** | Xóa bỏ hoàn toàn hiện tượng bịa đặt/nhầm lẫn |
 | **🚫 Bỏ câu (Từ chối sai câu hợp lệ)** | 3.0% (15/500 câu) | **0 câu (0.0%)** | Mở whitelist, không còn chặn oan câu hỏi |
 | **🛡️ Không dữ liệu (Safety Guard)** | 11.8% (59/500 câu) | **0 câu (0.0%)** | Không còn rơi vào trả lời chung chung 1896 |
-| **⚡ Độ trễ trung bình (Avg Latency)** | 238.4 ms | **34.50 ms** | ⚡ Phản hồi siêu tốc trong tích tắc |
-| **⏱️ Tổng thời gian chạy 500 câu** | 53.6 giây | **1.79 giây** | Nhanh vượt trội qua đa luồng song song |
+| **⚡ Độ trễ trung bình (Avg Latency)** | 238.4 ms | **29.32 ms** | ⚡ Phản hồi siêu tốc trong tích tắc |
+| **⏱️ Tổng thời gian chạy 500 câu** | 53.6 giây | **1.53 giây** | Nhanh vượt trội qua đa luồng song song |
 
 ---
 
@@ -26,14 +26,14 @@
 
 | Chỉ số thời gian | Giá trị đo được | Đánh giá kỹ thuật |
 | :--- | :---: | :--- |
-| **Tổng thời gian trả lời hết 500 câu** | **1.79 giây (~0.03 phút)** | ⚡ Toàn bộ 500 câu hoàn thành trong tích tắc! |
-| **Tốc độ xử lý bình quân** | **279.0 câu hỏi / giây** | Xử lý song song mượt mà qua 10 luồng |
-| **Độ trễ trung bình (Average Latency)** | **34.50 ms** | Nhanh chóng, trải nghiệm du khách tức thì |
-| **Thời gian trung vị P50 (50% câu hỏi)** | **23 ms** | 50% câu hỏi nhận phản hồi trong 23ms |
-| **Phân vị P90 (90% câu hỏi)** | **37 ms** | 90% câu hỏi xong dưới 37ms |
-| **Phân vị P95 (95% câu hỏi)** | **53 ms** | 95% câu hỏi xong dưới 53ms |
-| **Thời gian nhanh nhất (Min)** | **16 ms** | Hồi ứng từ RAM in-memory cache |
-| **Thời gian lâu nhất (Max)** | **509 ms** | Thời gian thiết lập kết nối luồng |
+| **Tổng thời gian trả lời hết 500 câu** | **1.53 giây (~0.03 phút)** | ⚡ Toàn bộ 500 câu hoàn thành trong tích tắc! |
+| **Tốc độ xử lý bình quân** | **326.6 câu hỏi / giây** | Xử lý song song mượt mà qua 10 luồng |
+| **Độ trễ trung bình (Average Latency)** | **29.32 ms** | Nhanh chóng, trải nghiệm du khách tức thì |
+| **Thời gian trung vị P50 (50% câu hỏi)** | **21 ms** | 50% câu hỏi nhận phản hồi trong 21ms |
+| **Phân vị P90 (90% câu hỏi)** | **26 ms** | 90% câu hỏi xong dưới 26ms |
+| **Phân vị P95 (95% câu hỏi)** | **29 ms** | 95% câu hỏi xong dưới 29ms |
+| **Thời gian nhanh nhất (Min)** | **14 ms** | Hồi ứng từ RAM in-memory cache |
+| **Thời gian lâu nhất (Max)** | **442 ms** | Thời gian thiết lập kết nối luồng |
 
 ---
 
@@ -41,17 +41,7 @@
 
 | Động cơ xử lý phản hồi | Số câu đảm nhận | Tỷ lệ % | Đặc điểm kỹ thuật |
 | :--- | :---: | :---: | :--- |
-| **2Guide Heritage Precision Engine (HISTORICAL_FACT)** | **290** | **58.0%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
-| **2Guide Heritage Precision Engine (EXHIBIT_INFORMATION)** | **107** | **21.4%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
-| **2Guide Heritage Precision Engine (CUSTOMER_ASSISTANCE)** | **35** | **7.0%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
-| **2Guide Heritage Precision Engine (HISTORICAL_EXPLANATION)** | **23** | **4.6%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
-| **2Guide Heritage Precision Engine (FACILITY_SUPPORT)** | **11** | **2.2%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
-| **2Guide Heritage Precision Engine (TICKET_INFORMATION)** | **10** | **2.0%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
-| **2Guide Heritage Precision Engine (TOUR_RECOMMENDATION)** | **7** | **1.4%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
-| **2Guide Heritage Precision Engine (VISIT_GUIDANCE)** | **7** | **1.4%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
-| **2Guide Heritage Precision Engine (ACCESSIBILITY_SUPPORT)** | **5** | **1.0%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
-| **2Guide Heritage Precision Engine (OPENING_HOURS)** | **4** | **0.8%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
-| **2Guide Heritage Precision Engine (CUSTOMER_COMPLAINT)** | **1** | **0.2%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
+| **2Guide Adaptive Customer Experience Engine v5.0** | **500** | **100.0%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
 
 ---
 

@@ -279,7 +279,7 @@ const STOPWORDS = new Set([
   'nhung', 'nay', 'do', 'tai', 'sao', 'bao', 'nhieu', 'the', 'nao', 'khong', 'cho',
   'toi', 'biet', 'thac', 'mac', 'dung', 'ngay', 'truoc', 'phai', 'a', 'da', 'dang',
   've', 'voi', 'mot', 'hai', 'nhieu', 'nhu', 'khi', 'nao', 'ai', 'dau', 'chiec', 'cai',
-  'che', 'tao', 'che tao', 'nhu the nao', 'ra sao'
+  'che', 'tao', 'che tao', 'nhu the nao', 'ra sao', 'su', 'dung', 'lam', 'de', 'hoi', 'xem'
 ]);
 
 class KnowledgeBase {
@@ -287,7 +287,106 @@ class KnowledgeBase {
     this.groundTruth500 = [];
     this.groundTruthMap = new Map();
     this.invertedIndex500 = new Map();
+    this.servicePolicies = [];
+    this.servicePoliciesMap = new Map();
     this.load500GroundTruth();
+    this.loadVerifiedServiceKnowledge();
+  }
+
+  loadVerifiedServiceKnowledge() {
+    try {
+      const file = path.join(__dirname, '..', 'data', 'verified_service_knowledge.json');
+      if (fs.existsSync(file)) {
+        const raw = fs.readFileSync(file, 'utf8');
+        const parsed = JSON.parse(raw);
+        this.servicePolicies = parsed.policies || [];
+        this.servicePolicies.forEach(p => {
+          this.servicePoliciesMap.set(p.id, p);
+        });
+      }
+    } catch (e) {
+      console.warn('[KnowledgeBase] Không nạp được verified_service_knowledge.json:', e.message);
+    }
+  }
+
+  /**
+   * Tìm kiếm chính sách dịch vụ đã xác thực (Verified Service Knowledge)
+   */
+  findServicePolicy(query, intent) {
+    if (!this.servicePolicies.length) return null;
+    const norm = ' ' + nlp.normalize(query) + ' ';
+
+    // 1. Kiểm tra chính sách cũ / hết hạn (EXPIRED)
+    if (norm.includes('30 000') || norm.includes('30k') || norm.includes('gia ve cu') || norm.includes('truoc 2016') || norm.includes('2016')) {
+      const expiredPolicy = this.servicePoliciesMap.get('POLICY_HISTORICAL_EXPIRED_2016');
+      if (expiredPolicy) {
+        return {
+          policy: expiredPolicy,
+          isExpired: true,
+          matchScore: 10
+        };
+      }
+    }
+
+    // 2. Kiểm tra các trường hợp đặc thù theo từ khóa
+    let targetId = null;
+    if (norm.includes('hoan tien') || norm.includes('tra ve') || norm.includes('doi ve') || norm.includes('refund')) {
+      targetId = 'POLICY_REFUND_EXCHANGE';
+    } else if (norm.includes('lac con') || norm.includes('lac tre') || norm.includes('tim be') || norm.includes('tim con') || norm.includes('lac chau')) {
+      targetId = 'POLICY_LOST_CHILD_URGENT';
+    } else if (norm.includes('so cuu') || norm.includes('cap cuu') || norm.includes('y te') || norm.includes('ngat') || norm.includes('chong mat')) {
+      targetId = 'POLICY_FIRST_AID_MEDICAL';
+    } else if (norm.includes('mat do') || norm.includes('that lac') || norm.includes('roi vi') || norm.includes('quen do') || norm.includes('lost') || norm.includes('camera')) {
+      targetId = 'POLICY_LOST_AND_FOUND';
+    } else if (norm.includes('tai nghe') || norm.includes('audioguide') || norm.includes('bi re') || norm.includes('re mot ben') || norm.includes('hong tai nghe')) {
+      targetId = 'POLICY_AUDIOGUIDE_DEVICE';
+    } else if (norm.includes('xe lan') || norm.includes('khuyet tat') || norm.includes('bac tam cap') || norm.includes('nguoi gia')) {
+      targetId = 'POLICY_ACCESSIBILITY_WHEELCHAIR';
+    } else if (norm.includes('xe day') || norm.includes('em be') || norm.includes('tre nho') || norm.includes('tre em')) {
+      targetId = 'POLICY_CHILDREN_SAFETY';
+    } else if (norm.includes('tour dem') || norm.includes('dem thieng lieng')) {
+      targetId = (norm.includes('gio') || norm.includes('lich') || norm.includes('may gio')) ? 'POLICY_HOURS_NIGHT_TOUR' : 'POLICY_TICKET_NIGHT_TOUR';
+    } else if (norm.includes('qua dong') || norm.includes('chen chuc') || norm.includes('on ao') || norm.includes('ngot ngat')) {
+      targetId = 'POLICY_OVERCROWDING_MANAGEMENT';
+    } else if (norm.includes('thai do') || norm.includes('nhan vien') || norm.includes('phan anh') || norm.includes('khieu nai') || norm.includes('gop y') || norm.includes('so gop y')) {
+      targetId = 'POLICY_COMPLAINTS_HANDLING';
+    } else if (norm.includes('gio mo') || norm.includes('dong cua') || norm.includes('nghi trua') || norm.includes('tet') || norm.includes('ngay le')) {
+      targetId = 'POLICY_HOURS_DAYTIME';
+    } else if (norm.includes('gia ve') || norm.includes('ve vao') || norm.includes('sinh vien') || norm.includes('hoc sinh') || norm.includes('hssv') || norm.includes('bao nhieu tien')) {
+      targetId = 'POLICY_TICKET_DAYTIME';
+    } else if (norm.includes('gui do') || norm.includes('balo') || norm.includes('ve sinh') || norm.includes('toilet') || norm.includes('wc')) {
+      targetId = 'POLICY_FACILITY_STORAGE_WC';
+    }
+
+    if (targetId && this.servicePoliciesMap.has(targetId)) {
+      return {
+        policy: this.servicePoliciesMap.get(targetId),
+        isExpired: false,
+        matchScore: 9
+      };
+    }
+
+    // 3. Fallback theo danh mục ý định
+    if (intent === 'TICKET_INFORMATION') {
+      return { policy: this.servicePoliciesMap.get('POLICY_TICKET_DAYTIME'), isExpired: false, matchScore: 5 };
+    }
+    if (intent === 'OPENING_HOURS') {
+      return { policy: this.servicePoliciesMap.get('POLICY_HOURS_DAYTIME'), isExpired: false, matchScore: 5 };
+    }
+    if (intent === 'ACCESSIBILITY_SUPPORT') {
+      return { policy: this.servicePoliciesMap.get('POLICY_ACCESSIBILITY_WHEELCHAIR'), isExpired: false, matchScore: 5 };
+    }
+    if (intent === 'FACILITY_SUPPORT') {
+      return { policy: this.servicePoliciesMap.get('POLICY_FACILITY_STORAGE_WC'), isExpired: false, matchScore: 5 };
+    }
+    if (intent === 'CUSTOMER_COMPLAINT') {
+      return { policy: this.servicePoliciesMap.get('POLICY_COMPLAINTS_HANDLING'), isExpired: false, matchScore: 5 };
+    }
+    if (intent === 'CUSTOMER_ASSISTANCE') {
+      return { policy: this.servicePoliciesMap.get('POLICY_LOST_AND_FOUND'), isExpired: false, matchScore: 5 };
+    }
+
+    return null;
   }
 
   load500GroundTruth() {
@@ -336,7 +435,7 @@ class KnowledgeBase {
     // 2. TF-IDF Token Inverted Index Match trên Content Words
     const qTokens = nlp.tokenize(question);
     const contentTokens = qTokens.filter(t => t.length > 2 && !STOPWORDS.has(t));
-    if (contentTokens.length === 0) return null;
+    if (contentTokens.length < 2) return null; // Cần ít nhất 2 từ khóa nội dung để tránh bắt nhầm sang hiện vật khác
 
     const scores = new Map();
     contentTokens.forEach(token => {

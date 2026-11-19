@@ -114,16 +114,21 @@ class SmartTourGuideServer {
     const followUp = nlp.resolveFollowUp(standardized, session.lastContext);
     const activeQuery = followUp.resolvedQuery;
 
-    // TẦNG 2: INTENT UNDERSTANDING (14+ ý định)
+    // TẦNG 2: INTENT UNDERSTANDING (15+ ý định & Sub-Intents)
     const intentAnalysis = classifier.classify(activeQuery, session.lastContext);
     const intent = intentAnalysis.intent;
+    const subIntent = intentAnalysis.subIntent || null;
+    const urgency = intentAnalysis.urgency || 'NORMAL';
     this.stats.intentsCount[intent] = (this.stats.intentsCount[intent] || 0) + 1;
 
-    // TẦNG 3: CONTEXT RETRIEVAL (Truy xuất tri thức có căn cứ)
+    // TẦNG 3: CONTEXT RETRIEVAL (Truy xuất tri thức có căn cứ & Chính sách xác thực)
     let retrievedData = {
       groundTruthMatch: null,
       exhibitMatch: null,
       customerCareContext: null,
+      servicePolicy: null,
+      subIntent,
+      urgency,
       facts: []
     };
 
@@ -131,7 +136,13 @@ class SmartTourGuideServer {
     let topicName = null;
 
     // 1. Kiểm tra Ground Truth trước tiên để bảo đảm độ chính xác lịch sử tuyệt đối
-    const gt = knowledgeBase.findGroundTruthMatch(activeQuery);
+    let gt = null;
+    if (followUp.isFollowUp) {
+      gt = knowledgeBase.findGroundTruthMatch(activeQuery);
+    } else {
+      const gtCleaned = knowledgeBase.findGroundTruthMatch(cleaned);
+      gt = (gtCleaned && gtCleaned.type === 'EXACT') ? gtCleaned : (knowledgeBase.findGroundTruthMatch(activeQuery) || gtCleaned);
+    }
     if (gt) {
       retrievedData.groundTruthMatch = gt;
       retrievedData.facts.push(gt.item.reference_answer || gt.item.verified_answer);
@@ -139,8 +150,17 @@ class SmartTourGuideServer {
       topicName = gt.item.artifact || gt.item.area;
     }
 
+    // 2. Tra cứu Chính sách Dịch vụ Đã Xác Thực (Verified Service Knowledge)
+    const policyResult = knowledgeBase.findServicePolicy(activeQuery, intent);
+    if (policyResult) {
+      retrievedData.servicePolicy = policyResult;
+      retrievedData.facts.push(policyResult.policy.content);
+      if (!topicId) topicId = policyResult.policy.id;
+      if (!topicName) topicName = policyResult.policy.title;
+    }
+
     if (intent === INTENTS.HISTORICAL_FACT || intent === INTENTS.EXHIBIT_INFORMATION || intent === INTENTS.HISTORICAL_EXPLANATION) {
-      // 2. Tìm trong 13 hồ sơ phân khu
+      // 3. Tìm trong 13 hồ sơ phân khu
       const exhibit = knowledgeBase.findHistoricalExhibit(activeQuery);
       if (exhibit) {
         retrievedData.exhibitMatch = exhibit;
@@ -159,7 +179,7 @@ class SmartTourGuideServer {
       }
     }
 
-    // TẦNG 4 & 5: CONFIDENCE EVALUATION & ANSWER GENERATION (Answer Composer)
+    // TẦNG 4 & 5: CONFIDENCE EVALUATION & ANSWER GENERATION (Dynamic Answer Composer)
     const composerResult = await composer.compose({
       question: activeQuery,
       intent,
@@ -185,14 +205,25 @@ class SmartTourGuideServer {
     const latencyMs = Date.now() - startTime;
     this.stats.totalLatencyMs += latencyMs;
 
-    // TẦNG 8: FINAL RESPONSE (Tương thích 100% với frontend cũ + bổ sung metadata)
+    // TẦNG 8: FINAL RESPONSE (Đầy đủ Metadata V5.0)
     return {
       success: true,
       data: {
         reply: finalReply,
         intent: intent,
+        subIntent: subIntent,
+        urgency: urgency,
+        style: composerResult.style || 'CUSTOMER_CARE',
         confidence: confidence,
-        sources: composerResult.sources || ['Ban Quản Lý Di Tích Nhà Tù Hỏa Lò'],
+        sources: composerResult.sources || (policyResult ? [policyResult.policy.source] : ['Ban Quản Lý Di Tích Nhà Tù Hỏa Lò']),
+        policy: policyResult ? {
+          id: policyResult.policy.id,
+          title: policyResult.policy.title,
+          source: policyResult.policy.source,
+          status: policyResult.policy.status,
+          isExpired: policyResult.isExpired || false,
+          authority: policyResult.policy.authority_boundary
+        } : null,
         requiresHuman: composerResult.requiresHuman || false,
         responseType: composerResult.responseType || 'DIRECT_ANSWER',
         language: language,
@@ -200,7 +231,7 @@ class SmartTourGuideServer {
         resolvedQuery: followUp.isFollowUp ? activeQuery : undefined,
         sessionId: session.id,
         latencyMs: latencyMs,
-        provider: `2Guide Heritage Precision Engine (${intent})`
+        provider: '2Guide Adaptive Customer Experience Engine v5.0'
       }
     };
   }

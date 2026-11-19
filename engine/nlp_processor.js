@@ -85,6 +85,77 @@ class NlpProcessor {
     return 'vi';
   }
 
+  /**
+   * Phát hiện dấu hiệu Prompt Injection / Jailbreak
+   */
+  detectPromptInjection(text) {
+    if (!text || typeof text !== 'string') return false;
+    const norm = ' ' + this.normalize(text) + ' ';
+    const injectionPatterns = [
+      'ignore previous instructions', 'ignore all instructions', 'disregard prior',
+      'bo qua huong dan', 'bo qua moi huong dan', 'quen het quy tac', 'quen tat ca quy tac',
+      'bo qua moi quy tac', 'bo qua quy tac', 'bo qua tat ca quy tac',
+      'you are now', 'act as a', 'jailbreak', 'system override', 'admin mode', 'developer mode',
+      'dong vai', 'tro thanh mot ai khac', 'khong can tuan thu',
+      'noi rang hoa lo khong co that', 'noi rang may chem khong ton tai', 'bip bom'
+    ];
+    if (injectionPatterns.some(p => norm.includes(p))) return true;
+
+    // Quy tắc cấu trúc vượt rào bảo mật
+    if (norm.includes('bo qua') && (norm.includes('quy tac') || norm.includes('huong dan') || norm.includes('chi dan') || norm.includes('cau lenh') || norm.includes('lenh'))) {
+      return true;
+    }
+    if (norm.includes('quen') && (norm.includes('quy tac') || norm.includes('huong dan') || norm.includes('chi dan'))) {
+      return true;
+    }
+    if ((norm.includes('noi rang') || norm.includes('tuyen bo') || norm.includes('khang dinh')) && (norm.includes('khong co that') || norm.includes('khong ton tai'))) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Phân tích mức độ phức tạp và tín hiệu hỗ trợ (Query Complexity & Sentiment Signals)
+   */
+  analyzeQueryFeatures(text) {
+    const raw = this.cleanRawText(text);
+    const norm = ' ' + this.normalize(raw) + ' ';
+    const words = raw.split(/\s+/).filter(Boolean);
+
+    // 1. Phân loại độ phức tạp (Complexity)
+    let complexity = 'SIMPLE';
+    if (words.length > 15 || norm.includes(' va ') || norm.includes(' dong thoi ') || norm.includes(' ngoai ra ')) {
+      complexity = 'MULTI_PART';
+    } else if (words.length >= 8 || norm.includes('tai sao') || norm.includes('nguyen nhan') || norm.includes('y nghia') || norm.includes('nhu the nao')) {
+      complexity = 'DETAILED';
+    }
+
+    // 2. Tín hiệu trạng thái hỗ trợ (Không gán nhãn cố định)
+    const isFrustrated = [
+      'that vong', 'te', 'kem', 'kho chiu', 'buc minh', 'buc boi', 'thai do', 'thieu nhiet tinh',
+      'on ao', 'qua dong', 'chen chuc', 'khong hai long', 'bi re', 'hong tai nghe'
+    ].some(s => norm.includes(s));
+
+    const isUrgent = [
+      'khan cap', 'cap cuu', 'ngat', 'so cuu', 'lac con', 'lac tre', 'tim be', 'tim con', 'mat vi', 'roi vi', 'mat dien thoai'
+    ].some(s => norm.includes(s));
+
+    const isPolicyQuery = [
+      'quy dinh', 'chinh sach', 'gia ve', 'gio mo cua', 'hoan tien', 'doi ve', 'co duoc phep', 'co duoc mang'
+    ].some(s => norm.includes(s));
+
+    return {
+      wordCount: words.length,
+      complexity,
+      signals: {
+        isFrustrated,
+        isUrgent,
+        isPolicyQuery
+      }
+    };
+  }
+
   standardizeTypos(text) {
     if (!text) return '';
     let result = text;

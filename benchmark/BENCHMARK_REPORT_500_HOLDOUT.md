@@ -2,8 +2,8 @@
 
 * **Phiên bản Engine:** 2Guide AI Customer Experience & Heritage Precision Engine v4.0
 * **Quy mô kiểm định:** **500 ca kiểm thử độc lập (Holdout Dataset)**
-* **Thời gian thực hiện:** 14:23:01 19/11/2026
-* **Tổng thời gian hoàn tất:** **1.69 giây** (Tốc độ bình quân: 296.0 ca/giây)
+* **Thời gian thực hiện:** 15:10:19 19/11/2026
+* **Tổng thời gian hoàn tất:** **3.32 giây** (Tốc độ bình quân: 150.8 ca/giây)
 
 ---
 
@@ -11,11 +11,11 @@
 
 | Chỉ số đánh giá | Kết quả đạt được | Chuẩn mục tiêu (Senior QA) | Trạng thái thẩm định |
 | :--- | :---: | :---: | :---: |
-| **⭐ ĐIỂM TRUNG BÌNH TOÀN DIỆN** | **9.31 / 10.0** | **>= 9.0 / 10.0** | 🏆 **ĐẠT XUẤT SẮC (GRADE 9.5+)** |
+| **⭐ ĐIỂM TRUNG BÌNH TOÀN DIỆN** | **9.35 / 10.0** | **>= 9.0 / 10.0** | 🏆 **ĐẠT XUẤT SẮC (GRADE 9.5+)** |
 | **🎯 Tỷ lệ ca kiểm thử đạt chuẩn** | **100.0% (500/500 ca)** | **>= 95.0%** | ✅ **Vượt chuẩn kiểm định** |
-| **⚡ Độ trễ trung bình (Average Latency)** | **24.78 ms** | **< 100 ms** | 🚀 **Phản hồi siêu tốc tức thì** |
-| **⏱️ Phân vị P50 (50% câu hỏi)** | **18 ms** | **< 50 ms** | Trải nghiệm mượt mà |
-| **⏱️ Phân vị P95 (95% câu hỏi)** | **58 ms** | **< 300 ms** | Ổn định tuyệt đối |
+| **⚡ Độ trễ trung bình (Average Latency)** | **51.59 ms** | **< 100 ms** | 🚀 **Phản hồi siêu tốc tức thì** |
+| **⏱️ Phân vị P50 (50% câu hỏi)** | **26 ms** | **< 50 ms** | Trải nghiệm mượt mà |
+| **⏱️ Phân vị P95 (95% câu hỏi)** | **134 ms** | **< 300 ms** | Ổn định tuyệt đối |
 | **🛡️ Tỷ lệ lỗi bịa đặt (Hallucination)** | **0.0% (0 / 500 ca)** | **0.0%** | 🛡️ **Tuyệt đối không bịa đặt** |
 
 ---
@@ -24,13 +24,13 @@
 
 | Nhóm kiểm thử độc lập | Số ca | Điểm TB (/10) | Tỷ lệ Đạt (%) | Đánh giá năng lực thực tế |
 | :--- | :---: | :---: | :---: | :--- |
-| **HISTORICAL_FACT** | 100 | **9.41** | **100.0%** | Chuẩn xác 100% sự kiện lịch sử |
-| **EXHIBIT_DETAILS** | 100 | **9.04** | **100.0%** | Thông số hiện vật chính xác tuyệt đối |
-| **CUSTOMER_CARE** | 100 | **9.47** | **100.0%** | Thấu cảm, xin lỗi, chỉ dẫn hành động rõ ràng |
+| **HISTORICAL_FACT** | 100 | **9.40** | **100.0%** | Chuẩn xác 100% sự kiện lịch sử |
+| **EXHIBIT_DETAILS** | 100 | **8.98** | **100.0%** | Thông số hiện vật chính xác tuyệt đối |
+| **CUSTOMER_CARE** | 100 | **9.76** | **100.0%** | Thấu cảm, xin lỗi, chỉ dẫn hành động rõ ràng |
 | **TOUR_RECOMMENDATION** | 50 | **9.15** | **100.0%** | Lộ trình tối ưu theo thời gian du khách |
-| **CONVERSATIONAL_FOLLOWUP** | 50 | **8.72** | **100.0%** | Hiểu ngữ cảnh đại từ 'nó', 'khu đó' chính xác |
+| **CONVERSATIONAL_FOLLOWUP** | 50 | **8.50** | **100.0%** | Hiểu ngữ cảnh đại từ 'nó', 'khu đó' chính xác |
 | **AMBIGUOUS_TYPO_SHORT** | 50 | **9.78** | **100.0%** | Sửa lỗi gõ và hỏi lại khi thiếu thông tin |
-| **OUT_OF_SCOPE_AND_TRAPS** | 50 | **9.60** | **100.0%** | Từ chối đúng ranh giới & bẻ gãy câu hỏi bẫy |
+| **OUT_OF_SCOPE_AND_TRAPS** | 50 | **9.84** | **100.0%** | Từ chối đúng ranh giới & bẻ gãy câu hỏi bẫy |
 
 ---
 

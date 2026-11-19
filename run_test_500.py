@@ -77,19 +77,15 @@ def evaluate_response(area, question, reply, provider, ref_answer):
     norm_reply = normalize_text(reply)
     norm_ref = normalize_text(ref_answer)
     
-    # 1. Khớp hoàn toàn với đáp án tham chiếu hoặc xuất phát từ Heritage Precision Engine
-    if norm_reply == norm_ref or (norm_ref and norm_ref in norm_reply) or "Heritage Precision Engine" in provider:
-        return "CORRECT", 100, "Đúng trọng tâm (True Specific)", "Khớp 100% đáp án tham chiếu chuẩn sử học Hỏa Lò (Heritage Precision Engine)"
+    # 1. Khớp hoàn toàn với đáp án tham chiếu chuẩn sử học
+    if norm_reply == norm_ref or (norm_ref and norm_ref in norm_reply):
+        return "CORRECT", 100, "Đúng trọng tâm (True Specific)", "Khớp 100% đáp án tham chiếu chuẩn sử học Hỏa Lò"
     
-    # 2. Bỏ câu (từ chối sai)
-    if "Smart Guardrail" in provider or "ngoai pham vi" in norm_reply or "tu choi" in norm_reply:
+    # 2. Bỏ câu (từ chối sai câu hỏi hợp lệ)
+    if "ngoai pham vi" in norm_reply or "tu choi" in norm_reply:
         return "INCORRECT", 0, "Bỏ câu (Từ chối sai)", "Từ chối nhầm câu hỏi hợp lệ của di tích Hỏa Lò"
     
-    # 3. Không dữ liệu / Fallback Safety Guard
-    if "Safety Guard" in provider:
-        return "PARTIAL", 30, "Không dữ liệu (Safety Guard)", "Không tìm thấy tri thức chi tiết, trả về thông tin chung năm 1896"
-    
-    # 4. Kiểm tra mức độ bao phủ từ khóa của ref_answer
+    # 3. Kiểm tra mức độ bao phủ dữ kiện thực tế của ref_answer (Đánh giá nội dung thực, không theo provider)
     if norm_ref:
         ref_words = set(w for w in norm_ref.split() if len(w) > 2)
         reply_words = set(w for w in norm_reply.split() if len(w) > 2)
