@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2Guide AI Load & Fact-Checking Hub (Nhà Tù Hỏa Lò)</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(17, 24, 39, 0.85);
+      --border: rgba(255, 255, 255, 0.08);
+      --cyan: #06b6d4;
+      --gold: #f59e0b;
+      --green: #10b981;
+      --red: #ef4444;
+      --purple: #a855f7;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px 60px;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 40%);
+    }
+    .container { max-width: 1240px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 20px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(6, 182, 212, 0.12); color: var(--cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3); padding: 5px 14px;
+      border-radius: 999px; font-size: 12px; font-weight: 600; margin-bottom: 8px;
+    }
+    .badge .dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 8px var(--green); }
+    h1 {
+      font-size: 26px; font-weight: 700;
+      background: linear-gradient(135deg, #fff 30%, var(--cyan) 70%, var(--purple) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    p.sub { color: var(--text-muted); font-size: 13px; max-width: 760px; margin: 0 auto; line-height: 1.5; }
+    
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex; justify-content: center; gap: 10px; margin-bottom: 22px; margin-top: 10px;
+    }
+    .tab-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      color: var(--text-muted); padding: 10px 20px; border-radius: 10px; font-size: 13px;
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .tab-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(168,85,247,0.2));
+      color: #fff; border-color: var(--cyan); box-shadow: 0 0 15px rgba(6,182,212,0.2);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 18px; margin-bottom: 20px; }
+    @media (min-width: 860px) {
+      .grid-config { grid-template-columns: 1.15fr 0.85fr; }
+      .grid-metrics { grid-template-columns: repeat(4, 1fr); }
+      .grid-verify-metrics { grid-template-columns: repeat(5, 1fr); }
+    }
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4);
+    }
+    .card-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+    
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%; background: #030712; border: 1px solid rgba(255,255,255,0.12);
+      color: #fff; padding: 9px 12px; border-radius: 8px; font-size: 13px; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--cyan); }
+    .presets { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+    .chip {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted); font-size: 11px; padding: 3px 10px; border-radius: 6px; cursor: pointer;
+    }
+    .chip:hover, .chip.active { background: rgba(6,182,212,0.15); color: var(--cyan); border-color: var(--cyan); }
+    
+    .btn-row { display: flex; gap: 10px; margin-top: 16px; }
+    button {
+      flex: 1; padding: 11px; border-radius: 8px; font-weight: 600; font-size: 13px;
+      cursor: pointer; border: none; transition: all 0.2s;
+    }
+    .btn-start { background: linear-gradient(135deg, var(--green), #059669); color: #fff; }
+    .btn-start:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+    .btn-verify { background: linear-gradient(135deg, var(--purple), #7c3aed); color: #fff; }
+    .btn-verify:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(168,85,247,0.3); }
+    .btn-stop { background: rgba(239, 68, 68, 0.2); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.4); }
+    .btn-stop:hover:not(:disabled) { background: var(--red); color: #fff; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .metric-card {
+      background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px;
+    }
+    .metric-label { font-size: 12px; color: var(--text-muted); }
+    .metric-val { font-size: 24px; font-weight: 700; color: #fff; }
+    .metric-sub { font-size: 11px; color: var(--text-muted); }
+
+    .progress-bar-wrap {
+      background: #030712; border-radius: 8px; height: 16px; width: 100%;
+      overflow: hidden; border: 1px solid rgba(255,255,255,0.08); margin: 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      transition: width 0.15s ease;
+    }
+
+    canvas#chart {
+      width: 100%; height: 140px; background: #030712; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05); margin-top: 10px;
+    }
+    .log-table {
+      width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px;
+    }
+    .log-table th, .log-table td {
+      padding: 9px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .log-table th { color: var(--text-muted); font-weight: 600; background: rgba(0,0,0,0.3); }
+    .status-200, .tag-correct { color: var(--green); font-weight: 600; }
+    .status-429, .tag-partial { color: var(--gold); font-weight: 600; }
+    .status-err, .tag-incorrect { color: var(--red); font-weight: 600; }
+
+    .tag {
+      display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700;
+    }
+    .tag-correct { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); }
+    .tag-partial { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); }
+    .tag-incorrect { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); }
+
+    .report-modal {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; padding: 20px;
+    }
+    .report-box {
+      background: #0a0e1a; border: 1px solid var(--border); border-radius: 14px;
+      width: 100%; max-width: 900px; max-height: 85vh; display: flex; flex-direction: column; padding: 20px;
+    }
+    .report-content {
+      overflow-y: auto; background: #030712; padding: 16px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08); font-family: monospace; font-size: 12px; line-height: 1.5; color: #cbd5e1; flex: 1; margin: 14px 0; white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge"><span class="dot"></span> 2Guide AI Verification & Stress Lab</div>
+      <h1>Trạm Kiểm Thử & Kiểm Chứng Độ Chính Xác AI</h1>
+      <p class="sub">Hệ thống đo lường hiệu năng chịu tải 1000 requests và đối chiếu độ chính xác của Trợ lý AI dựa trên 1,000 câu hỏi lịch sử chính xác về <strong>Di tích Nhà tù Hỏa Lò</strong>.</p>
+    </header>
+
+    <!-- Nút chuyển Tab -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchMainTab('tab-stress')">⚡ 1. KIỂM THỬ CHỊU TẢI (STRESS TEST 1000 REQS)</button>
+      <button class="tab-btn" onclick="switchMainTab('tab-verify')">🔍 2. KIỂM CHỨNG ĐỘ CHÍNH XÁC AI (1000 CÂU HỎI HỎA LÒ)</button>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 1: KIỂM THỬ CHỊU TẢI 1000 REQUESTS                         -->
+    <!-- ============================================================== -->
+    <div id="tab-stress" class="tab-panel active">
+      <div class="grid grid-config">
+        <div class="card">
+          <div class="card-title">
+            <span>⚙️ Cấu Hình Đợt Bắn Tải</span>
+            <span id="test-status-badge" style="font-size: 12px; color: var(--text-muted);">Sẵn sàng</span>
+          </div>
+
+          <div class="form-group">
+            <label>Đường dẫn API cần kiểm thử (Target URL):</label>
+            <input type="text" id="target-url" value="http://localhost:4001/api/chat/ask">
+            <div class="presets">
+              <span class="chip active" onclick="setPreset('smart_ai')">⚡ Smart AI Server v2.0 (:4001)</span>
+              <span class="chip" onclick="setPreset('ai')">2Guide Server Cũ (:4000)</span>
+              <span class="chip" onclick="setPreset('site')">Site Data (:4000)</span>
+              <span class="chip" onclick="setPreset('hubs')">Hubs Info (:4000)</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label>Tổng Requests:</label>
+              <input type="number" id="total-req" value="1000" min="10" max="5000">
+            </div>
+            <div class="form-group">
+              <label>Luồng đồng thời (Concurrency):</label>
+              <input type="number" id="concurrency" value="20" min="1" max="100">
+            </div>
+            <div class="form-group">
+              <label>Nghỉ giữa request (ms):</label>
+              <input type="number" id="delay-ms" value="0" min="0" max="1000">
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn-start" id="btn-start" onclick="startTest()">🚀 BẮT ĐẦU TEST (1000 REQ)</button>
+            <button class="btn-stop" id="btn-stop" onclick="stopTest()" disabled>⏹️ DỪNG LẠI</button>
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div class="card-title">
+            <span>⚡ Tiến Trình & Tốc Độ Xử Lý</span>
+            <button class="chip" onclick="viewLatestReport('stress')" style="background: rgba(6,182,212,0.1); color: var(--cyan); border-color: var(--cyan);">📄 Báo Cáo Chịu Tải MD</button>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+              <span id="progress-percent">0.0%</span>
+              <span id="progress-counts">0 / 1000 reqs</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <div class="metric-card">
+              <span class="metric-label">Tốc độ hiện tại</span>
+              <span class="metric-val" id="metric-rps" style="color: var(--cyan);">0.0</span>
+              <span class="metric-sub">Requests / giây</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Thời gian chạy</span>
+              <span class="metric-val" id="metric-time">0s</span>
+              <span class="metric-sub">Giây trôi qua</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-metrics">
+        <div class="metric-card">
+          <span class="metric-label">✅ Thành công (2xx)</span>
+          <span class="metric-val" id="metric-success" style="color: var(--green);">0</span>
+          <span class="metric-sub" id="metric-success-rate">Tỷ lệ: 0%</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">⚠️ Quá Tải Rate Limit (429)</span>
+          <span class="metric-val" id="metric-429" style="color: var(--gold);">0</span>
+          <span class="metric-sub">Bị giới hạn quota Groq AI</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">❌ Lỗi Server / Mạng</span>
+          <span class="metric-val" id="metric-err" style="color: var(--red);">0</span>
+          <span class="metric-sub">5xx hoặc Request Timeout</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">⏱️ Độ Trễ TB (Latency)</span>
+          <span class="metric-val" id="metric-latency">0 ms</span>
+          <span class="metric-sub" id="metric-latency-range">Min: 0ms | Max: 0ms</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>📈 Đồ Thị Độ Trễ Phản Hồi Realtime (Latency Timeline)</span>
+          <span style="font-size: 11px; color: var(--text-muted);">Thời gian AI trả lời từng câu hỏi</span>
+        </div>
+        <canvas id="chart"></canvas>
+      </div>
+
+      <div class="card" style="margin-top: 18px;">
+        <div class="card-title">
+          <span>📜 Nhật Ký Phản Hồi Từ AI (Live Stream Logs)</span>
+          <span id="log-count" style="font-size: 11px; color: var(--text-muted);">0 phản hồi</span>
+        </div>
+        <div style="overflow-x: auto; max-height: 280px;">
+          <table class="log-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th style="width: 90px;">Mã HTTP</th>
+                <th style="width: 100px;">Độ trễ</th>
+                <th>Trích đoạn phản hồi từ AI</th>
+              </tr>
+            </thead>
+            <tbody id="log-tbody">
+              <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">Chưa có dữ liệu kiểm thử. Bấm "BẮT ĐẦU TEST" để kích hoạt.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 2: KIỂM CHỨNG ĐỘ CHÍNH XÁC AI (1000 CÂU HỎI HỎA LÒ)       -->
+    <!-- ============================================================== -->
+    <div id="tab-verify" class="tab-panel">
+      <div class="grid grid-config">
+        <div class="card">
+          <div class="card-title">
+            <span>🏛️ Cấu Hình Bộ Kiểm Chứng Sự Thật (Fact-Check)</span>
+            <span id="verify-status-badge" style="font-size: 12px; color: var(--text-muted);">Sẵn sàng</span>
+          </div>
+
+          <div class="form-group">
+            <label>Phân loại Hiện vật / Chủ đề kiểm chứng:</label>
+            <select id="verify-category" onchange="filterQuestionsPreview()">
+              <option value="ALL">Tất cả 10 Chủ đề (1,000 câu hỏi đầy đủ)</option>
+              <option value="Máy chém (Guillotine)">1. Máy chém (Guillotine - Lưỡi dao 50kg, Yên Bái)</option>
+              <option value="Cây bàng lịch sử & Ẩm thực Bàng">2. Cây bàng lịch sử (Lá thuốc, Hòm thư bí mật, Trà bàng)</option>
+              <option value="Cống ngầm & Vượt ngục lịch sử">3. Cửa cống ngầm & Vượt ngục (Tháng 3/1945 & Noel 1951)</option>
+              <option value="Xà lim Cachot & Cùm chân xi măng">4. Xà lim Cachot & Cùm chân (Địa ngục của địa ngục)</option>
+              <option value="Khu trại giam Nữ & Phong trào đấu tranh">5. Khu trại giam Nữ (Nguyễn Thị Minh Khai, Hoàng Ngân)</option>
+              <option value="Phi công Mỹ & 'Hanoi Hilton'">6. Phi công Mỹ & 'Hanoi Hilton' (John McCain, 1964-1973)</option>
+              <option value="Cổng chính Maison Centrale & Lịch sử hình thành">7. Cổng chính Maison Centrale (Làng Phụ Khánh 1896)</option>
+              <option value="Hiện vật sinh hoạt & Báo chí bí mật">8. Hiện vật sinh hoạt (Bát gỗ, Báo Đỏ, Lao tù)</option>
+              <option value="Tour đêm 'Đêm thiêng liêng' & Trải nghiệm">9. Tour đêm Đêm thiêng liêng (Sống như những đóa hoa)</option>
+              <option value="Quy định, Giá vé & Hướng dẫn tham quan (FAQ)">10. Quy định, Giá vé & Audioguide (Số 1 Hỏa Lò, 50k)</option>
+            </select>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label>Số lượng câu muốn test:</label>
+              <input type="number" id="verify-limit" value="1000" min="5" max="1000">
+            </div>
+            <div class="form-group">
+              <label>Luồng song song:</label>
+              <input type="number" id="verify-concurrency" value="10" min="1" max="50">
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn-verify" id="btn-verify-start" onclick="startVerification()">🔍 BẮT ĐẦU KIỂM CHỨNG (FACT-CHECK)</button>
+            <button class="btn-stop" id="btn-verify-stop" onclick="stopVerification()" disabled>⏹️ DỪNG</button>
+          </div>
+        </div>
+
+        <!-- Khung tiến độ & Tỷ lệ chính xác -->
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div class="card-title">
+            <span>🎯 Độ Tin Cậy & Tỷ Lệ Chính Xác</span>
+            <button class="chip" onclick="viewLatestReport('verify')" style="background: rgba(168,85,247,0.15); color: var(--purple); border-color: var(--purple);">📄 Báo Cáo Fact-Check MD</button>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+              <span>Tiến độ đối chiếu</span>
+              <span id="verify-progress-counts">0 / 1000 câu</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" id="verify-progress-fill" style="background: linear-gradient(90deg, var(--purple), var(--green));"></div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <div class="metric-card">
+              <span class="metric-label">Tỷ lệ chính xác (Accuracy)</span>
+              <span class="metric-val" id="metric-accuracy" style="color: var(--green);">0.0%</span>
+              <span class="metric-sub">Độ tin cậy sự thật lịch sử</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Tỷ lệ sai / bịa đặt</span>
+              <span class="metric-val" id="metric-hallucination" style="color: var(--red);">0.0%</span>
+              <span class="metric-sub">Hallucination rate</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 thẻ thống kê kết quả kiểm chứng -->
+      <div class="grid grid-verify-metrics">
+        <div class="metric-card">
+          <span class="metric-label">✅ Đúng chuẩn (CORRECT)</span>
+          <span class="metric-val" id="v-correct" style="color: var(--green);">0</span>
+          <span class="metric-sub">Khớp đủ dữ kiện cốt lõi</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">⚠️ Thiếu chi tiết (PARTIAL)</span>
+          <span class="metric-val" id="v-partial" style="color: var(--gold);">0</span>
+          <span class="metric-sub">Đúng hướng nhưng thiếu ý</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">❌ Sai / Bịa đặt (FAILED)</span>
+          <span class="metric-val" id="v-incorrect" style="color: var(--red);">0</span>
+          <span class="metric-sub">Sai lệch sự kiện lịch sử</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">⚡ Rate Limit (429)</span>
+          <span class="metric-val" id="v-429" style="color: var(--gold);">0</span>
+          <span class="metric-sub">Bị nghẽn hạn ngạch Groq</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">🚨 Lỗi kết nối / Server</span>
+          <span class="metric-val" id="v-error" style="color: var(--red);">0</span>
+          <span class="metric-sub">Server sập hoặc Timeout</span>
+        </div>
+      </div>
+
+      <!-- Bảng đối chiếu sự thật 1000 câu hỏi -->
+      <div class="card" style="margin-top: 18px;">
+        <div class="card-title">
+          <span>📋 Bảng Đối Chiếu Sự Thật (AI Response vs Ground Truth)</span>
+          <div>
+            <span class="chip active" onclick="filterAuditTable('ALL')">Tất cả</span>
+            <span class="chip" onclick="filterAuditTable('CORRECT')">Đúng ✅</span>
+            <span class="chip" onclick="filterAuditTable('PARTIAL')">Thiếu ý ⚠️</span>
+            <span class="chip" onclick="filterAuditTable('INCORRECT')">Sai/Bịa đặt ❌</span>
+          </div>
+        </div>
+        <div style="overflow-x: auto; max-height: 420px;">
+          <table class="log-table" id="verify-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;">#</th>
+                <th style="width: 140px;">Chủ đề hiện vật</th>
+                <th style="width: 250px;">Câu hỏi của du khách</th>
+                <th style="width: 280px;">AI Trả Lời Thực Tế</th>
+                <th>Dữ kiện Lịch sử Chuẩn & Đánh giá</th>
+                <th style="width: 90px;">Kết luận</th>
+              </tr>
+            </thead>
+            <tbody id="verify-tbody">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 25px;">Đang nạp danh sách 1,000 câu hỏi lịch sử Nhà tù Hỏa Lò...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal xem Báo cáo Markdown -->
+  <div class="report-modal" id="report-modal">
+    <div class="report-box">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 id="report-modal-title" style="font-size: 16px; font-weight: 700; color: #fff;">📄 Báo Cáo Đánh Giá (Markdown)</h3>
+        <button onclick="closeReportModal()" style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer;">&times;</button>
+      </div>
+      <div class="report-content" id="report-md-text">Đang tải báo cáo...</div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-start" onclick="copyReportText()">📋 Sao Chép Báo Cáo</button>
+        <button class="btn-stop" onclick="closeReportModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let sseSource = null;
+    let chartData = [];
+    let startTime = null;
+    let timerInterval = null;
+    let cachedQuestions = [];
+    let verificationAuditLog = [];
+    let currentAuditFilter = 'ALL';
+
+    function switchMainTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function setPreset(type) {
+      document.querySelectorAll('.presets .chip').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      const input = document.getElementById('target-url');
+      if (type === 'smart_ai') input.value = 'http://localhost:4001/api/chat/ask';
+      else if (type === 'ai') input.value = 'http://localhost:4000/api/chat/ask';
+      else if (type === 'site') input.value = 'http://localhost:4000/api/site-data';
+      else if (type === 'hubs') input.value = 'http://localhost:4000/api/hubs';
+    }
+
+    function initSse() {
+      if (sseSource) sseSource.close();
+      sseSource = new EventSource('/api/stream-stats');
+
+      // STRESS TEST EVENTS
+      sseSource.addEventListener('start', () => {
+        document.getElementById('test-status-badge').textContent = 'Đang chạy kiểm thử...';
+        document.getElementById('test-status-badge').style.color = 'var(--cyan)';
+        document.getElementById('btn-start').disabled = true;
+        document.getElementById('btn-stop').disabled = false;
+        startTime = Date.now();
+        chartData = [];
+        startTimer();
+      });
+
+      sseSource.addEventListener('progress', (e) => {
+        const data = JSON.parse(e.data);
+        updateProgress(data);
+      });
+
+      sseSource.addEventListener('complete', (e) => {
+        const summary = JSON.parse(e.data);
+        finishTest(summary);
+      });
+
+      sseSource.addEventListener('stopped', () => {
+        document.getElementById('test-status-badge').textContent = 'Đã dừng';
+        document.getElementById('test-status-badge').style.color = 'var(--gold)';
+        resetButtons();
+      });
+
+      // VERIFICATION EVENTS
+      sseSource.addEventListener('verify-start', () => {
+        document.getElementById('verify-status-badge').textContent = 'Đang kiểm chứng...';
+        document.getElementById('verify-status-badge').style.color = 'var(--purple)';
+        document.getElementById('btn-verify-start').disabled = true;
+        document.getElementById('btn-verify-stop').disabled = false;
+        verificationAuditLog = [];
+      });
+
+      sseSource.addEventListener('verify-progress', (e) => {
+        const data = JSON.parse(e.data);
+        updateVerifyProgress(data);
+      });
+
+      sseSource.addEventListener('verify-complete', (e) => {
+        const data = JSON.parse(e.data);
+        finishVerification(data.stats);
+      });
+
+      sseSource.addEventListener('verify-stopped', () => {
+        document.getElementById('verify-status-badge').textContent = 'Đã dừng';
+        document.getElementById('btn-verify-start').disabled = false;
+        document.getElementById('btn-verify-stop').disabled = true;
+      });
+    }
+
+    // --- STRESS TEST FUNCTIONS ---
+    function updateProgress(data) {
+      document.getElementById('progress-percent').textContent = data.percent + '%';
+      document.getElementById('progress-counts').textContent = `${data.completed} / ${data.total} reqs`;
+      document.getElementById('progress-fill').style.width = data.percent + '%';
+
+      document.getElementById('metric-rps').textContent = data.currentRps;
+      document.getElementById('metric-success').textContent = data.success;
+      document.getElementById('metric-429').textContent = data.rateLimit;
+      document.getElementById('metric-err').textContent = data.error;
+
+      const successRate = data.completed > 0 ? ((data.success / data.completed) * 100).toFixed(1) : 0;
+      document.getElementById('metric-success-rate').textContent = `Tỷ lệ: ${successRate}%`;
+
+      if (data.lastLog) {
+        chartData.push(data.lastLog.latency);
+        if (chartData.length > 80) chartData.shift();
+        drawChart();
+        appendLog(data.lastLog);
+      }
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (startTime) {
+          const sec = Math.floor((Date.now() - startTime) / 1000);
+          document.getElementById('metric-time').textContent = sec + 's';
+        }
+      }, 1000);
+    }
+
+    function resetButtons() {
+      document.getElementById('btn-start').disabled = false;
+      document.getElementById('btn-stop').disabled = true;
+      if (timerInterval) clearInterval(timerInterval);
+    }
+
+    function finishTest(summary) {
+      resetButtons();
+      document.getElementById('test-status-badge').textContent = 'Hoàn tất!';
+      document.getElementById('test-status-badge').style.color = 'var(--green)';
+
+      document.getElementById('metric-latency').textContent = summary.latency.avg + ' ms';
+      document.getElementById('metric-latency-range').textContent = `Min: ${summary.latency.min}ms | Max: ${summary.latency.max}ms | P95: ${summary.latency.p95}ms`;
+
+      alert(`🎉 Kiểm thử tải hoàn tất!\n- Tổng thời gian: ${summary.durationSec}s\n- Tốc độ: ${summary.requestsPerSecond} req/s\n- Thành công: ${summary.successCount} (${summary.successRate})`);
+    }
+
+    async function startTest() {
+      const url = document.getElementById('target-url').value.trim();
+      const total = parseInt(document.getElementById('total-req').value, 10) || 1000;
+      const concurrency = parseInt(document.getElementById('concurrency').value, 10) || 20;
+      const delay = parseInt(document.getElementById('delay-ms').value, 10) || 0;
+
+      document.getElementById('log-tbody').innerHTML = '';
+
+      try {
+        const res = await fetch('/api/start-test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, total, concurrency, delay })
+        });
+        const data = await res.json();
+        if (!data.success) alert('Lỗi: ' + (data.error || 'Không thể bắt đầu test'));
+      } catch (err) {
+        alert('Lỗi kết nối server: ' + err.message);
+      }
+    }
+
+    async function stopTest() {
+      if (!confirm('Dừng đợt kiểm thử đang chạy?')) return;
+      try { await fetch('/api/stop-test', { method: 'POST' }); } catch (e) { alert('Lỗi: ' + e.message); }
+    }
+
+    function appendLog(log) {
+      const tbody = document.getElementById('log-tbody');
+      const tr = document.createElement('tr');
+      const statusClass = log.statusCode === 200 ? 'status-200' : (log.statusCode === 429 ? 'status-429' : 'status-err');
+      const statusText = log.statusCode === 0 ? 'Lỗi mạng' : (log.statusCode === 408 ? 'Timeout' : log.statusCode);
+
+      tr.innerHTML = `
+        <td style="color: var(--text-muted);">${log.index}</td>
+        <td class="${statusClass}">${statusText}</td>
+        <td>${log.latency} ms</td>
+        <td style="color: #cbd5e1; font-family: monospace;">${log.preview || (log.error ? 'Lỗi: ' + log.error : '—')}</td>
+      `;
+      tbody.insertBefore(tr, tbody.firstChild);
+      while (tbody.children.length > 20) tbody.removeChild(tbody.lastChild);
+      document.getElementById('log-count').textContent = `${log.index} phản hồi`;
+    }
+
+    // --- CANVAS GRAPH ---
+    const canvas = document.getElementById('chart');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() {
+      canvas.width = canvas.clientWidth * window.devicePixelRatio || 600;
+      canvas.height = canvas.clientHeight * window.devicePixelRatio || 140;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function drawChart() {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      if (chartData.length < 2) return;
+      const maxLatency = Math.max(...chartData, 1000);
+      const step = w / (chartData.length - 1);
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
+      grad.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+
+      ctx.beginPath();
+      ctx.moveTo(0, h);
+      for (let i = 0; i < chartData.length; i++) {
+        const x = i * step;
+        const y = h - (chartData[i] / maxLatency) * (h - 20) - 10;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo((chartData.length - 1) * step, h);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.beginPath();
+      for (let i = 0; i < chartData.length; i++) {
+        const x = i * step;
+        const y = h - (chartData[i] / maxLatency) * (h - 20) - 10;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2 * window.devicePixelRatio;
+      ctx.stroke();
+    }
+
+    // --- VERIFIER FUNCTIONS (1000 CÂU HỎI HỎA LÒ) ---
+    async function loadQuestionsList() {
+      try {
+        const res = await fetch('/api/verify/questions');
+        cachedQuestions = await res.json();
+        renderInitialQuestionsTable();
+      } catch (e) {
+        console.error('Lỗi tải 1000 câu hỏi:', e);
+      }
+    }
+
+    function renderInitialQuestionsTable() {
+      const tbody = document.getElementById('verify-tbody');
+      tbody.innerHTML = '';
+      const cat = document.getElementById('verify-category').value;
+      const filtered = cat === 'ALL' ? cachedQuestions.slice(0, 50) : cachedQuestions.filter(q => q.category === cat).slice(0, 50);
+
+      filtered.forEach(q => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="color: var(--text-muted);">${q.id}</td>
+          <td><strong style="color: var(--cyan);">${q.category}</strong><br><small style="color: var(--text-muted);">${q.target_poi}</small></td>
+          <td style="color: #fff;">${q.question}</td>
+          <td style="color: var(--text-muted); font-style: italic;">(Chờ AI trả lời khi bấm BẮT ĐẦU KIỂM CHỨNG)</td>
+          <td style="font-size: 11px; color: #cbd5e1;"><strong>Dữ kiện:</strong> ${q.expected_keywords.slice(0, 5).join(', ')}</td>
+          <td><span class="tag" style="background: rgba(255,255,255,0.08); color: var(--text-muted);">Sẵn sàng</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterQuestionsPreview() {
+      renderInitialQuestionsTable();
+    }
+
+    async function startVerification() {
+      const limit = parseInt(document.getElementById('verify-limit').value, 10) || 1000;
+      const concurrency = parseInt(document.getElementById('verify-concurrency').value, 10) || 10;
+      const url = document.getElementById('target-url').value.trim();
+
+      document.getElementById('verify-tbody').innerHTML = '';
+      verificationAuditLog = [];
+
+      try {
+        const res = await fetch('/api/verify/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, limit, concurrency, delay: 150 })
+        });
+        const data = await res.json();
+        if (!data.success) alert('Lỗi: ' + (data.error || 'Không thể bắt đầu kiểm chứng'));
+      } catch (err) {
+        alert('Lỗi kết nối: ' + err.message);
+      }
+    }
+
+    async function stopVerification() {
+      if (!confirm('Dừng đợt kiểm chứng đang chạy?')) return;
+      try { await fetch('/api/verify/stop', { method: 'POST' }); } catch (e) { alert('Lỗi: ' + e.message); }
+    }
+
+    function updateVerifyProgress(data) {
+      document.getElementById('verify-progress-counts').textContent = `${data.completed} / ${data.total} câu`;
+      const pct = ((data.completed / data.total) * 100).toFixed(1);
+      document.getElementById('verify-progress-fill').style.width = pct + '%';
+
+      document.getElementById('metric-accuracy').textContent = data.accuracyRate;
+      const halluRate = data.completed > 0 ? ((data.incorrect / data.completed) * 100).toFixed(1) : 0;
+      document.getElementById('metric-hallucination').textContent = halluRate + '%';
+
+      document.getElementById('v-correct').textContent = data.correct;
+      document.getElementById('v-partial').textContent = data.partial;
+      document.getElementById('v-incorrect').textContent = data.incorrect;
+      document.getElementById('v-429').textContent = data.rateLimited;
+      document.getElementById('v-error').textContent = data.error;
+
+      if (data.lastResult) {
+        verificationAuditLog.unshift(data.lastResult);
+        renderAuditRow(data.lastResult);
+      }
+    }
+
+    function renderAuditRow(item) {
+      const tbody = document.getElementById('verify-tbody');
+      if (currentAuditFilter !== 'ALL' && item.evaluation.verdict !== currentAuditFilter) return;
+
+      const tr = document.createElement('tr');
+      let tagHtml = '';
+      if (item.evaluation.verdict === 'CORRECT') tagHtml = '<span class="tag tag-correct">ĐÚNG 100%</span>';
+      else if (item.evaluation.verdict === 'PARTIAL') tagHtml = '<span class="tag tag-partial">THIẾU Ý</span>';
+      else if (item.evaluation.verdict === 'INCORRECT') tagHtml = '<span class="tag tag-incorrect">SAI/BỊA ĐẶT</span>';
+      else if (item.evaluation.verdict === 'RATE_LIMIT') tagHtml = '<span class="tag" style="background: rgba(245,158,11,0.2); color: var(--gold);">RATE LIMIT</span>';
+      else tagHtml = '<span class="tag tag-incorrect">LỖI MẠNG</span>';
+
+      tr.innerHTML = `
+        <td style="color: var(--text-muted);">${item.index}</td>
+        <td><strong style="color: var(--cyan);">${item.category}</strong><br><small style="color: var(--text-muted);">${item.target_poi}</small></td>
+        <td style="color: #fff; font-weight: 500;">${item.question}</td>
+        <td style="font-size: 11px; line-height: 1.4; color: #e2e8f0;">${item.aiReply ? item.aiReply.slice(0, 180) + '...' : '—'}</td>
+        <td style="font-size: 11px; color: #cbd5e1;">
+          <strong style="color: var(--green);">Đã khớp:</strong> ${item.evaluation.matched?.slice(0, 4).join(', ') || 'Không có'}<br>
+          <small style="color: var(--text-muted);">${item.evaluation.reason}</small>
+        </td>
+        <td>${tagHtml}</td>
+      `;
+
+      tbody.insertBefore(tr, tbody.firstChild);
+      while (tbody.children.length > 50) tbody.removeChild(tbody.lastChild);
+    }
+
+    function filterAuditTable(filter) {
+      currentAuditFilter = filter;
+      document.querySelectorAll('#tab-verify .card-title .chip').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const tbody = document.getElementById('verify-tbody');
+      tbody.innerHTML = '';
+      const toShow = filter === 'ALL' ? verificationAuditLog : verificationAuditLog.filter(x => x.evaluation.verdict === filter);
+
+      if (toShow.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">Không có kết quả nào cho bộ lọc "${filter}".</td></tr>`;
+        return;
+      }
+
+      toShow.slice(0, 50).forEach(item => {
+        let tagHtml = '';
+        if (item.evaluation.verdict === 'CORRECT') tagHtml = '<span class="tag tag-correct">ĐÚNG 100%</span>';
+        else if (item.evaluation.verdict === 'PARTIAL') tagHtml = '<span class="tag tag-partial">THIẾU Ý</span>';
+        else if (item.evaluation.verdict === 'INCORRECT') tagHtml = '<span class="tag tag-incorrect">SAI/BỊA ĐẶT</span>';
+        else tagHtml = '<span class="tag tag-incorrect">LỖI</span>';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="color: var(--text-muted);">${item.index}</td>
+          <td><strong style="color: var(--cyan);">${item.category}</strong><br><small style="color: var(--text-muted);">${item.target_poi}</small></td>
+          <td style="color: #fff;">${item.question}</td>
+          <td style="font-size: 11px; color: #e2e8f0;">${item.aiReply ? item.aiReply.slice(0, 180) + '...' : '—'}</td>
+          <td style="font-size: 11px; color: #cbd5e1;">${item.evaluation.reason}</td>
+          <td>${tagHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function finishVerification(stats) {
+      document.getElementById('verify-status-badge').textContent = 'Hoàn tất kiểm chứng!';
+      document.getElementById('verify-status-badge').style.color = 'var(--green)';
+      document.getElementById('btn-verify-start').disabled = false;
+      document.getElementById('btn-verify-stop').disabled = true;
+
+      alert(`🎉 Kiểm chứng 1000 câu hỏi hoàn tất!\n- Tỷ lệ chính xác lịch sử: ${stats.accuracyRate}\n- Câu đúng chuẩn: ${stats.correct}\n- Câu đúng 1 phần: ${stats.partial}\n- Sai / Bịa đặt: ${stats.incorrect}\n- Quá tải Rate Limit: ${stats.rateLimited}\n\n👉 Bấm "Báo Cáo Fact-Check MD" để xem chi tiết!`);
+    }
+
+    // --- REPORT MODAL ---
+    async function viewLatestReport(type) {
+      try {
+        const res = await fetch(`/api/latest-report?type=${type}`);
+        const data = await res.json();
+        if (data.markdown) {
+          document.getElementById('report-modal-title').textContent = type === 'verify' 
+            ? '🏛️ Báo Cáo Kiểm Chứng Sự Thật AI - Nhà Tù Hỏa Lò (Markdown)' 
+            : '⚡ Báo Cáo Kiểm Thử Chịu Tải 1000 Requests (Markdown)';
+          document.getElementById('report-md-text').textContent = data.markdown;
+          document.getElementById('report-modal').style.display = 'flex';
+        } else {
+          alert('Chưa có báo cáo nào! Hãy chạy bài kiểm tra trước.');
+        }
+      } catch (e) {
+        alert('Lỗi lấy báo cáo: ' + e.message);
+      }
+    }
+
+    function closeReportModal() {
+      document.getElementById('report-modal').style.display = 'none';
+    }
+
+    function copyReportText() {
+      const text = document.getElementById('report-md-text').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Đã sao chép nội dung Báo Cáo Markdown vào Clipboard!');
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initSse();
+      drawChart();
+      loadQuestionsList();
+    });
+  </script>
+</body>
+</html>

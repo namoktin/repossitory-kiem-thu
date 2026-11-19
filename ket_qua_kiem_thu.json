@@ -1,0 +1,25 @@
+{
+  "targetUrl": "http://localhost:4001/api/chat/ask",
+  "totalConfigured": 10000,
+  "completed": 10000,
+  "successCount": 10000,
+  "rateLimitCount": 0,
+  "errorCount": 0,
+  "successRate": "100.00%",
+  "durationSec": "25.53",
+  "requestsPerSecond": "391.65",
+  "concurrency": 40,
+  "statusCodes": {
+    "200": 10000
+  },
+  "latency": {
+    "min": 1,
+    "max": 1473,
+    "avg": 100,
+    "p50": 95,
+    "p90": 173,
+    "p95": 208,
+    "p99": 410
+  },
+  "completedAt": "2026-11-17T16:46:30.165Z"
+}

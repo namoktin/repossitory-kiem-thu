@@ -1,0 +1,19 @@
+{
+  "name": "2guide-stress-tester",
+  "version": "1.0.0",
+  "description": "Bo cong cu kiem thu chiu tai 1000 request AI cho 2Guide",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "cli": "node stress_test.js --url http://localhost:4000/api/chat/ask --total 1000 --concurrency 20"
+  },
+  "keywords": [
+    "stress-test",
+    "load-test",
+    "2guide",
+    "ai",
+    "groq"
+  ],
+  "author": "",
+  "license": "ISC"
+}

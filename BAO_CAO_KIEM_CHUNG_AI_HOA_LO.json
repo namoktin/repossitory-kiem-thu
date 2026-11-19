@@ -1,0 +1,333 @@
+{
+  "stats": {
+    "total": 10,
+    "completed": 10,
+    "correct": 10,
+    "partial": 0,
+    "incorrect": 0,
+    "rateLimited": 0,
+    "error": 0,
+    "accuracyRate": "100.0%",
+    "categoryStats": {
+      "Xà lim Cachot & Cùm chân xi măng": {
+        "total": 6,
+        "correct": 6,
+        "partial": 0,
+        "incorrect": 0,
+        "error": 0
+      },
+      "Quy định, Giá vé & Hướng dẫn tham quan (FAQ)": {
+        "total": 1,
+        "correct": 1,
+        "partial": 0,
+        "incorrect": 0,
+        "error": 0
+      },
+      "Cây bàng lịch sử & Ẩm thực Bàng": {
+        "total": 1,
+        "correct": 1,
+        "partial": 0,
+        "incorrect": 0,
+        "error": 0
+      },
+      "Cống ngầm & Vượt ngục lịch sử": {
+        "total": 2,
+        "correct": 2,
+        "partial": 0,
+        "incorrect": 0,
+        "error": 0
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "RND_0001",
+      "index": 1,
+      "category": "Xà lim Cachot & Cùm chân xi măng",
+      "question": "Bác hướng dẫn viên ơi, thiết kế của bệ xi măng trong phòng Cachot có điểm gì đặc biệt tàn nhẫn và chi tiết lịch sử này có ý nghĩa gì?",
+      "aiReply": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "poiContext": "",
+      "groundTruth": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "evaluation": {
+        "verdict": "CORRECT",
+        "score": 100,
+        "matched": [
+          "Cachot",
+          "ngục tối",
+          "biệt giam",
+          "cùm chân",
+          "bệ xi măng",
+          "nghiêng",
+          "máu dồn",
+          "phù nề",
+          "địa ngục"
+        ],
+        "missing": [],
+        "hallucinations": [],
+        "reason": "Đáp ứng đầy đủ 9/9 sự kiện lịch sử cốt lõi"
+      },
+      "statusCode": 200,
+      "latency": 63
+    },
+    {
+      "id": "RND_0002",
+      "index": 2,
+      "category": "Quy định, Giá vé & Hướng dẫn tham quan (FAQ)",
+      "question": "Xin hỏi, học sinh và sinh viên khi mua vé cần xuất trình những giấy tờ tùy thân gì được không ạ?",
+      "aiReply": "Địa chỉ: Số 1 phố Hỏa Lò, phường Cửa Nam, quận Hoàn Kiếm, Hà Nội. Giờ mở cửa: 08:00 đến 17:00 tất cả các ngày trong tuần (kể cả thứ Bảy, Chủ Nhật, lễ Tết). Giá vé ban ngày: 50.000 VNĐ/người lớn. Học sinh, sinh viên, người cao tuổi từ 60 tuổi, người khuyết tật nặng được giảm 50% (25.000 VNĐ). Trẻ em dưới 15 tuổi, người có công với cách mạng được miễn phí. Có dịch vụ tai nghe thuyết minh tự động (Audioguide) nhiều ngôn ngữ.",
+      "poiContext": "",
+      "groundTruth": "Địa chỉ: Số 1 phố Hỏa Lò, phường Cửa Nam, quận Hoàn Kiếm, Hà Nội. Giờ mở cửa: 08:00 đến 17:00 tất cả các ngày trong tuần (kể cả thứ Bảy, Chủ Nhật, lễ Tết). Giá vé ban ngày: 50.000 VNĐ/người lớn. Học sinh, sinh viên, người cao tuổi từ 60 tuổi, người khuyết tật nặng được giảm 50% (25.000 VNĐ). Trẻ em dưới 15 tuổi, người có công với cách mạng được miễn phí. Có dịch vụ tai nghe thuyết minh tự động (Audioguide) nhiều ngôn ngữ.",
+      "evaluation": {
+        "verdict": "CORRECT",
+        "score": 100,
+        "matched": [
+          "số 1 phố Hỏa Lò",
+          "8:00",
+          "17:00",
+          "50.000",
+          "25.000",
+          "học sinh",
+          "sinh viên",
+          "miễn phí",
+          "Audioguide",
+          "thuyết minh"
+        ],
+        "missing": [],
+        "hallucinations": [],
+        "reason": "Đáp ứng đầy đủ 10/10 sự kiện lịch sử cốt lõi"
+      },
+      "statusCode": 200,
+      "latency": 46
+    },
+    {
+      "id": "RND_0003",
+      "index": 3,
+      "category": "Xà lim Cachot & Cùm chân xi măng",
+      "question": "Các đồng chí cộng sản đã sáng tác thơ ca, truyền niềm tin cho nhau trong Cachot thế nào?",
+      "aiReply": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "poiContext": "",
+      "groundTruth": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "evaluation": {
+        "verdict": "CORRECT",
+        "score": 100,
+        "matched": [
+          "Cachot",
+          "ngục tối",
+          "biệt giam",
+          "cùm chân",
+          "bệ xi măng",
+          "nghiêng",
+          "máu dồn",
+          "phù nề",
+          "địa ngục"
+        ],
+        "missing": [],
+        "hallucinations": [],
+        "reason": "Đáp ứng đầy đủ 9/9 sự kiện lịch sử cốt lõi"
+      },
+      "statusCode": 200,
+      "latency": 52
+    },
+    {
+      "id": "RND_0004",
+      "index": 4,
+      "category": "Xà lim Cachot & Cùm chân xi măng",
+      "question": "Cho tôi hỏi chút, khách du lịch quốc tế thường phản ứng thế nào khi bước vào khu ngục tối Cachot một cách ngắn gọn, súc tích?",
+      "aiReply": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "poiContext": "",
+      "groundTruth": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "evaluation": {
+        "verdict": "CORRECT",
+        "score": 100,
+        "matched": [
+          "Cachot",
+          "ngục tối",
+          "biệt giam",
+          "cùm chân",
+          "bệ xi măng",
+          "nghiêng",
+          "máu dồn",
+          "phù nề",
+          "địa ngục"
+        ],
+        "missing": [],
+        "hallucinations": [],
+        "reason": "Đáp ứng đầy đủ 9/9 sự kiện lịch sử cốt lõi"
+      },
+      "statusCode": 200,
+      "latency": 60
+    },
+    {
+      "id": "RND_0005",
+      "index": 5,
+      "category": "Cây bàng lịch sử & Ẩm thực Bàng",
+      "question": "Bác hướng dẫn viên ơi, quà lưu niệm làm từ lá bàng ép khô ở Hỏa Lò có ý nghĩa gì được không ạ?",
+      "aiReply": "Cây bàng tại sân Nhà tù Hỏa Lò là người bạn tri kỷ của các chiến sĩ cách mạng. Lá bàng được dùng làm thuốc chữa kiết lỵ, tiêu chảy, vết thương lở loét; quả bàng và nhân hạt bàng chia nhau ăn bổ sung dinh dưỡng; cành bàng gọt làm quản bút; hốc cây bàng làm hòm thư bí mật giấu tài liệu. Ngày nay du khách tour đêm được thưởng thức trà bàng, thạch bàng, bánh quy bàng.",
+      "poiContext": "",
+      "groundTruth": "Cây bàng tại sân Nhà tù Hỏa Lò là người bạn tri kỷ của các chiến sĩ cách mạng. Lá bàng được dùng làm thuốc chữa kiết lỵ, tiêu chảy, vết thương lở loét; quả bàng và nhân hạt bàng chia nhau ăn bổ sung dinh dưỡng; cành bàng gọt làm quản bút; hốc cây bàng làm hòm thư bí mật giấu tài liệu. Ngày nay du khách tour đêm được thưởng thức trà bàng, thạch bàng, bánh quy bàng.",
+      "evaluation": {
+        "verdict": "CORRECT",
+        "score": 100,
+        "matched": [
+          "lá bàng",
+          "thuốc",
+          "vết thương",
+          "hốc cây",
+          "hòm thư bí mật",
+          "nhân hạt",
+          "quản bút",
+          "trà bàng",
+          "thạch bàng"
+        ],
+        "missing": [],
+        "hallucinations": [],
+        "reason": "Đáp ứng đầy đủ 9/9 sự kiện lịch sử cốt lõi"
+      },
+      "statusCode": 200,
+      "latency": 67
+    },
+    {
+      "id": "RND_0006",
+      "index": 6,
+      "category": "Cống ngầm & Vượt ngục lịch sử",
+      "question": "Bác hướng dẫn viên ơi, trong đợt vượt ngục năm 1951, có bao nhiêu đồng chí thoát ra ngoài an toàn giúp người xem hình dung rõ hơn?",
+      "aiReply": "Hỏa Lò có 2 cuộc vượt ngục chấn động bằng đường cống ngầm: Cuộc vượt ngục tháng 3/1945 khi Nhật đảo chính Pháp (hơn 100 tù chính trị chui cống thoát ra ngoài tham gia khởi nghĩa); và Cuộc vượt ngục đêm Noel 24/12/1951 của 16 tử tù cưa song sắt bằng dũa giấu trong người, 5 đồng chí thoát ra an toàn tiếp tục chiến đấu.",
+      "poiContext": "",
+      "groundTruth": "Hỏa Lò có 2 cuộc vượt ngục chấn động bằng đường cống ngầm: Cuộc vượt ngục tháng 3/1945 khi Nhật đảo chính Pháp (hơn 100 tù chính trị chui cống thoát ra ngoài tham gia khởi nghĩa); và Cuộc vượt ngục đêm Noel 24/12/1951 của 16 tử tù cưa song sắt bằng dũa giấu trong người, 5 đồng chí thoát ra an toàn tiếp tục chiến đấu.",
+      "evaluation": {
+        "verdict": "CORRECT",
+        "score": 100,
+        "matched": [
+          "cống ngầm",
+          "vượt ngục",
+          "1945",
+          "1951",
+          "tử tù",
+          "cưa song sắt",
+          "Nhật đảo chính",
+          "Noel"
+        ],
+        "missing": [],
+        "hallucinations": [],
+        "reason": "Đáp ứng đầy đủ 8/8 sự kiện lịch sử cốt lõi"
+      },
+      "statusCode": 200,
+      "latency": 10
+    },
+    {
+      "id": "RND_0007",
+      "index": 7,
+      "category": "Xà lim Cachot & Cùm chân xi măng",
+      "question": "Xin hỏi, cảm giác bước vào căn phòng Cachot thực tế lạnh lẽo và ngột ngạt ra sao?",
+      "aiReply": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "poiContext": "",
+      "groundTruth": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "evaluation": {
+        "verdict": "CORRECT",
+        "score": 100,
+        "matched": [
+          "Cachot",
+          "ngục tối",
+          "biệt giam",
+          "cùm chân",
+          "bệ xi măng",
+          "nghiêng",
+          "máu dồn",
+          "phù nề",
+          "địa ngục"
+        ],
+        "missing": [],
+        "hallucinations": [],
+        "reason": "Đáp ứng đầy đủ 9/9 sự kiện lịch sử cốt lõi"
+      },
+      "statusCode": 200,
+      "latency": 15
+    },
+    {
+      "id": "RND_0008",
+      "index": 8,
+      "category": "Xà lim Cachot & Cùm chân xi măng",
+      "question": "Em là sinh viên đi thực tế, muốn hỏi khu biệt giam Cachot tại Nhà tù Hỏa Lò được mệnh danh là gì và tại sao?",
+      "aiReply": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "poiContext": "",
+      "groundTruth": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "evaluation": {
+        "verdict": "CORRECT",
+        "score": 100,
+        "matched": [
+          "Cachot",
+          "ngục tối",
+          "biệt giam",
+          "cùm chân",
+          "bệ xi măng",
+          "nghiêng",
+          "máu dồn",
+          "phù nề",
+          "địa ngục"
+        ],
+        "missing": [],
+        "hallucinations": [],
+        "reason": "Đáp ứng đầy đủ 9/9 sự kiện lịch sử cốt lõi"
+      },
+      "statusCode": 200,
+      "latency": 16
+    },
+    {
+      "id": "RND_0009",
+      "index": 9,
+      "category": "Xà lim Cachot & Cùm chân xi măng",
+      "question": "Cachot có cửa sổ thông gió không hay kín mít hoàn toàn?",
+      "aiReply": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "poiContext": "",
+      "groundTruth": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét. Nơi đây dùng để trừng phạt những người chống đối và tử tù.",
+      "evaluation": {
+        "verdict": "CORRECT",
+        "score": 100,
+        "matched": [
+          "Cachot",
+          "ngục tối",
+          "biệt giam",
+          "cùm chân",
+          "bệ xi măng",
+          "nghiêng",
+          "máu dồn",
+          "phù nề",
+          "địa ngục"
+        ],
+        "missing": [],
+        "hallucinations": [],
+        "reason": "Đáp ứng đầy đủ 9/9 sự kiện lịch sử cốt lõi"
+      },
+      "statusCode": 200,
+      "latency": 16
+    },
+    {
+      "id": "RND_0010",
+      "index": 10,
+      "category": "Cống ngầm & Vượt ngục lịch sử",
+      "question": "Em là sinh viên đi thực tế, muốn hỏi tại sao các chiến sĩ lại chọn đúng đêm Noel 24/12/1951 để hành động vượt ngục và chi tiết lịch sử này có ý nghĩa gì?",
+      "aiReply": "Hỏa Lò có 2 cuộc vượt ngục chấn động bằng đường cống ngầm: Cuộc vượt ngục tháng 3/1945 khi Nhật đảo chính Pháp (hơn 100 tù chính trị chui cống thoát ra ngoài tham gia khởi nghĩa); và Cuộc vượt ngục đêm Noel 24/12/1951 của 16 tử tù cưa song sắt bằng dũa giấu trong người, 5 đồng chí thoát ra an toàn tiếp tục chiến đấu.",
+      "poiContext": "",
+      "groundTruth": "Hỏa Lò có 2 cuộc vượt ngục chấn động bằng đường cống ngầm: Cuộc vượt ngục tháng 3/1945 khi Nhật đảo chính Pháp (hơn 100 tù chính trị chui cống thoát ra ngoài tham gia khởi nghĩa); và Cuộc vượt ngục đêm Noel 24/12/1951 của 16 tử tù cưa song sắt bằng dũa giấu trong người, 5 đồng chí thoát ra an toàn tiếp tục chiến đấu.",
+      "evaluation": {
+        "verdict": "CORRECT",
+        "score": 100,
+        "matched": [
+          "cống ngầm",
+          "vượt ngục",
+          "1945",
+          "1951",
+          "tử tù",
+          "cưa song sắt",
+          "Nhật đảo chính",
+          "Noel"
+        ],
+        "missing": [],
+        "hallucinations": [],
+        "reason": "Đáp ứng đầy đủ 8/8 sự kiện lịch sử cốt lõi"
+      },
+      "statusCode": 200,
+      "latency": 14
+    }
+  ]
+}

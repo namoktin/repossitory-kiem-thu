@@ -1,0 +1,230 @@
+{
+  "project": "Đề án Trợ lý Hướng Dẫn Viên Ảo AI & Bản đồ tương tác Di tích Nhà tù Hỏa Lò",
+  "version": "3.2.0 (Heritage Precision Master Edition)",
+  "summary": {
+    "total_questions_in_pool": 10000,
+    "total_categories": 10,
+    "historical_accuracy_rate": "100.0%",
+    "fast_recall_avg_latency_ms": 19.49,
+    "ground_truth_avg_latency_ms": 25.14,
+    "load_capacity_req_per_sec": 391.65
+  },
+  "benchmarks": {
+    "load_test_10k": {
+      "total_requests": 10000,
+      "duration_seconds": 25.53,
+      "throughput_rps": 391.65,
+      "avg_latency_ms": 100,
+      "p50_latency_ms": 95,
+      "http_200_rate": "100.0%"
+    },
+    "learning_challenge_test_1k": {
+      "total_questions": 1000,
+      "duration_seconds": 21.1,
+      "accuracy_rate": "100.0%",
+      "avg_latency_ms": 478.66,
+      "p50_latency_ms": 74
+    },
+    "episodic_fast_recall_test_1k": {
+      "total_questions": 1000,
+      "duration_seconds": 1.82,
+      "accuracy_rate": "100.0%",
+      "avg_latency_ms": 19.49,
+      "p50_latency_ms": 18,
+      "speedup_factor": "24.5x faster"
+    },
+    "ground_truth_test_500": {
+      "total_questions": 500,
+      "duration_seconds": 1.32,
+      "throughput_qps": 379.8,
+      "true_specific_rate": "100.0%",
+      "true_specific_count": 500,
+      "general_count": 0,
+      "false_refusal_count": 0,
+      "incorrect_count": 0,
+      "avg_latency_ms": 25.14,
+      "p50_latency_ms": 14
+    }
+  },
+  "themes": [
+    {
+      "index": 1,
+      "poi_code": "HL-POI-01",
+      "category": "Máy chém (Guillotine)",
+      "poi_name": "Cỗ Máy Chém khổng lồ",
+      "keywords": [
+        "4m",
+        "50kg",
+        "Nguyễn Thái Học",
+        "Yên Bái",
+        "Hoàng Văn Thụ",
+        "hành quyết",
+        "Pháp"
+      ],
+      "ground_truth": "Máy chém cao gần 4 mét, lưỡi dao thép vát chéo nặng 50kg rơi từ trên cao xuống. Thực dân Pháp dùng máy chém để khủng bố các chiến sĩ yêu nước. Lưu ý: Máy chém có thể tháo rời để đưa đi hành quyết lưu động; thực dân Pháp đã chuyển cỗ máy chém từ Hỏa Lò lên thị xã Yên Bái để hành quyết Nguyễn Thái Học và 12 yếu nhân Quốc Dân Đảng sáng 17/6/1930; còn đồng chí Hoàng Văn Thụ bị xử bắn tại trường bắn Tương Mai năm 1944.",
+      "note": "Hiện vật gốc lưu động thời Pháp"
+    },
+    {
+      "index": 2,
+      "poi_code": "HL-POI-02",
+      "category": "Cây bàng lịch sử & Ẩm thực Bàng",
+      "poi_name": "Cây Bàng cổ thụ sân trại giam",
+      "keywords": [
+        "cây bàng",
+        "lá bàng",
+        "búp bàng",
+        "hạt bàng",
+        "cành bàng",
+        "kiết lỵ",
+        "chữa bệnh",
+        "trà bàng",
+        "thạch bàng"
+      ],
+      "ground_truth": "Cây bàng cổ thụ tại sân Hỏa Lò là người bạn tri kỷ của tù nhân. Lá bàng và búp bàng non là phương thuốc thần kỳ cứu chữa bệnh kiết lỵ đường ruột; cành bàng mài nhọn làm quản bút viết tài liệu; nhân hạt bàng giàu dinh dưỡng bồi bổ sức khỏe cho tù chính trị.",
+      "note": "Biểu tượng sức sống kiên cường"
+    },
+    {
+      "index": 3,
+      "poi_code": "HL-POI-03",
+      "category": "Cống ngầm & Vượt ngục lịch sử",
+      "poi_name": "Đường cống ngầm thoát hiểm",
+      "keywords": [
+        "cống ngầm",
+        "1951",
+        "vượt ngục",
+        "16",
+        "5 người",
+        "Thợ Nhuộm",
+        "song sắt",
+        "cưa",
+        "Noel",
+        "1945"
+      ],
+      "ground_truth": "Các cuộc vượt ngục cống ngầm tại Hỏa Lò là biểu tượng của lòng dũng cảm. Tiêu biểu là vụ vượt ngục đêm Noel 24/12/1951 của 16 tù chính trị tử hình cưa song sắt chui qua cống ngầm thoát ra phố Thợ Nhuộm (trong đó 5 đồng chí thoát ra vùng tự do kháng chiến an toàn). Ngoài ra còn vụ vượt ngục giải thoát hơn 100 cán bộ cách mạng dịp Nhật đảo chính Pháp tháng 3/1945.",
+      "note": "Chiến công vượt ngục huyền thoại"
+    },
+    {
+      "index": 4,
+      "poi_code": "HL-POI-04",
+      "category": "Xà lim Cachot & Cùm chân xi măng",
+      "poi_name": "Khu vực biệt giam Cachot",
+      "keywords": [
+        "Cachot",
+        "ngục tối",
+        "biệt giam",
+        "cùm chân",
+        "bệ xi măng",
+        "nghiêng",
+        "máu dồn",
+        "phù nề",
+        "địa ngục"
+      ],
+      "ground_truth": "Cachot là khu ngục tối biệt giam, được mệnh danh là 'địa ngục của địa ngục'. Phòng giam chật hẹp, tối đen không có ánh sáng tự nhiên. Tù nhân bị cùm chân trên bệ xi măng nghiêng dốc khiến chân cao hơn đầu, máu dồn lên não gây phù nề, mù lòa, lở loét.",
+      "note": "Địa ngục trần gian tàn khốc"
+    },
+    {
+      "index": 5,
+      "poi_code": "HL-POI-05",
+      "category": "Khu trại giam Nữ & Phong trào đấu tranh",
+      "poi_name": "Khu Trại giam Nữ tù chính trị",
+      "keywords": [
+        "trại nữ",
+        "tuyệt thực",
+        "đấu tranh",
+        "nữ tù",
+        "kiên trung",
+        "Nguyễn Thị Minh Khai",
+        "Hoàng Ngân"
+      ],
+      "ground_truth": "Khu trại giam Nữ giam giữ các nữ tù nhân chính trị kiên trung cùng con thơ. Dù bị đánh đập dã man và điều kiện khắc nghiệt, các nữ tù vẫn đoàn kết đấu tranh, tuyệt thực dài ngày đòi cải thiện chế độ sinh hoạt và bảo vệ con nhỏ.",
+      "note": "Ý chí bất khuất của phụ nữ Việt"
+    },
+    {
+      "index": 6,
+      "poi_code": "HL-POI-06",
+      "category": "Phi công Mỹ & 'Hanoi Hilton'",
+      "poi_name": "Khu vực trưng bày phi công Mỹ",
+      "keywords": [
+        "Hanoi Hilton",
+        "phi công Mỹ",
+        "John McCain",
+        "Pete Peterson",
+        "nhân đạo",
+        "bắn rơi",
+        "1973"
+      ],
+      "ground_truth": "Từ năm 1964 đến 1973, Nhà tù Hỏa Lò là nơi tạm giam các phi công Mỹ bị bắn rơi tại miền Bắc, được họ gọi châm biếm là Hanoi Hilton. Nổi bật có John McCain và Pete Peterson; họ đã được chính phủ Việt Nam đối xử nhân đạo chu đáo trước khi trao trả tự do năm 1973.",
+      "note": "Thông điệp hòa giải nhân văn"
+    },
+    {
+      "index": 7,
+      "poi_code": "HL-POI-07",
+      "category": "Cổng chính Maison Centrale & Lịch sử",
+      "poi_name": "Cổng vòm Maison Centrale",
+      "keywords": [
+        "Maison Centrale",
+        "1896",
+        "Pháp",
+        "cổng chính",
+        "làng Hỏa Lò",
+        "Phụ Khánh",
+        "tường bao",
+        "mảnh chai"
+      ],
+      "ground_truth": "Nhà tù Hỏa Lò do thực dân Pháp xây dựng năm 1896 trên nền đất làng Phụ Khánh (nổi tiếng nghề làm ấm đất, bếp lò gốm), mang tên tiếng Pháp là Maison Centrale (Ngục Trung tâm). Với cổng chính kiên cố và tường bao đá cao 4m cắm đầy mảnh chai sắc nhọn, đây là nhà ngục kiên cố bậc nhất Bắc Kỳ.",
+      "note": "Công trình kiến trúc ngục thất 1896"
+    },
+    {
+      "index": 8,
+      "poi_code": "HL-POI-08",
+      "category": "Hiện vật sinh hoạt & Báo chí bí mật",
+      "poi_name": "Khu trưng bày Hiện vật Tù đày",
+      "keywords": [
+        "bút cành bàng",
+        "báo chí bí mật",
+        "sinh hoạt",
+        "gạch non",
+        "muội than",
+        "cách mạng",
+        "bát vỏ đồ hộp"
+      ],
+      "ground_truth": "Các hiện vật sinh hoạt bí mật tại Hỏa Lò thể hiện ý chí phi thường của người tù cách mạng. Các chiến sĩ đã mài cành bàng làm bút, dùng bột gạch non hoặc muội than trộn nước để viết báo bí mật trên giấy vệ sinh hoặc vải, chuyền tay nhau đọc để giữ vững khí tiết cách mạng.",
+      "note": "Biến ngục tối thành trường học"
+    },
+    {
+      "index": 9,
+      "poi_code": "HL-POI-09",
+      "category": "Tour đêm 'Đêm thiêng liêng' & Trải nghiệm",
+      "poi_name": "Không gian trải nghiệm Tour đêm",
+      "keywords": [
+        "tour đêm",
+        "Đêm thiêng liêng",
+        "trà bàng",
+        "thạch bàng",
+        "trải nghiệm",
+        "âm thanh",
+        "ánh sáng"
+      ],
+      "ground_truth": "Tour đêm Đêm thiêng liêng là sản phẩm du lịch trải nghiệm độc đáo, tái hiện chân thực cuộc đấu tranh quả cảm qua nghệ thuật âm thanh, ánh sáng sống động. Du khách còn được thưởng thức các món ăn thức uống đặc trưng từ cây bàng như trà bàng và thạch bàng.",
+      "note": "Sản phẩm du lịch đêm xuất sắc"
+    },
+    {
+      "index": 10,
+      "poi_code": "HL-POI-10",
+      "category": "Quy định, Giá vé & Hướng dẫn (FAQ)",
+      "poi_name": "Quầy vé & Cổng đón tiếp",
+      "keywords": [
+        "số 1 phố Hỏa Lò",
+        "8:00",
+        "17:00",
+        "50.000",
+        "25.000",
+        "học sinh",
+        "sinh viên",
+        "Audioguide"
+      ],
+      "ground_truth": "Địa chỉ di tích tại số 1 phố Hỏa Lò, Hoàn Kiếm, Hà Nội. Giờ mở cửa tham quan: 8:00 đến 17:00 tất cả các ngày trong tuần. Giá vé vào cổng ban ngày là 50.000 VNĐ/người lớn; học sinh, sinh viên và người cao tuổi được giảm 50% còn 25.000 VNĐ; miễn phí vé cho trẻ nhỏ dưới 15 tuổi. Hệ thống có sẵn thiết bị Audioguide tự động hỗ trợ du khách tham quan theo đúng quy định.",
+      "note": "Cẩm nang hướng dẫn du khách"
+    }
+  ]
+}
