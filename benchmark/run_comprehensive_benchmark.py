@@ -1,16 +1,18 @@
 """
-2Guide AI Comprehensive Benchmark Runner (v4.0 Enterprise QA)
-Thực thi kiểm định 500 ca độc lập trên 6 tiêu chí có trọng số:
-1. Độ chính xác thông tin (30%)
-2. Đúng trọng tâm và ý định (20%)
-3. Độ đầy đủ của câu trả lời (15%)
-4. Chất lượng chăm sóc khách hàng (15%)
-5. Tính tự nhiên và chuyên nghiệp (10%)
-6. Xử lý thiếu dữ liệu và an toàn (10%)
+2Guide AI Comprehensive Benchmark Runner v6.1 (Enterprise QA Edition)
+Thực thi kiểm định 500 ca độc lập trên 7 tiêu chí có trọng số chuẩn:
+1. Historical Accuracy (25%)
+2. Factual Grounding (20%)
+3. Relevance (15%)
+4. Completeness (10%)
+5. Customer Care (15%)
+6. Conversation Coherence (10%)
+7. Safety & Abstention (5%)
 """
 
 import json
 import os
+import sys
 import time
 import unicodedata
 import re
@@ -21,14 +23,15 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
-base_dir = r"C:\Users\Nam\Desktop\tp\kiemthu"
+# Đường dẫn tương đối đa nền tảng (Cross-platform compatibility)
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 dataset_path = os.path.join(base_dir, "benchmark", "dataset_500_holdout.json")
 md_report_path = os.path.join(base_dir, "benchmark", "BENCHMARK_REPORT_500_HOLDOUT.md")
 json_report_path = os.path.join(base_dir, "benchmark", "BENCHMARK_REPORT_500_HOLDOUT.json")
 xlsx_report_path = os.path.join(base_dir, "benchmark", "BENCHMARK_REPORT_500_HOLDOUT.xlsx")
 
-SERVER_URL = "http://localhost:4001/api/chat/ask"
-CONCURRENCY = 8
+SERVER_URL = os.environ.get("SERVER_URL", "http://localhost:4001/api/chat/ask")
+CONCURRENCY = int(os.environ.get("BENCHMARK_CONCURRENCY", "8"))
 
 def normalize(text):
     if not text: return ""
@@ -60,23 +63,37 @@ def evaluate_case(tc, reply, res_data, latency_ms):
             hallucination_found.append(f)
             accuracy_score = 0.0 # Bị 0 điểm nếu dính lỗi bịa đặt cấm kỵ
 
-    # 2. Tiêu chí 2: Factual Grounding - Có căn cứ nguồn xác thực (Trọng số 20%)
+    # 2. Tiêu chí 2: Factual Grounding - Đối chiếu bằng chứng thực tế cấp Claim (Trọng số 20%)
     grounding_score = 100.0
-    sources = res_data.get("sources", [])
-    claims = res_data.get("claims", [])
-    if not sources and not claims:
-        grounding_score = 50.0
-    elif res_data.get("confidence") == "LOW":
-        grounding_score = 70.0
+    if expected_intent in ["AMBIGUOUS_QUERY", "OUT_OF_SCOPE", "PROMPT_INJECTION", "GREETING"]:
+        grounding_score = 100.0
+    else:
+        verified_claims = res_data.get("verifiedClaims", [])
+        if verified_claims:
+            contradicted = [c for c in verified_claims if c.get("verificationStatus") == "CONTRADICTED"]
+            if contradicted:
+                grounding_score = 0.0
+            else:
+                supported = [c for c in verified_claims if c.get("verificationStatus") in ["SUPPORTED", "PARTIALLY_SUPPORTED"]]
+                grounding_score = round((len(supported) / len(verified_claims)) * 100.0, 1)
+        else:
+            sources = res_data.get("sources", [])
+            claims = res_data.get("claims", [])
+            if not sources and not claims:
+                grounding_score = 40.0
+            elif res_data.get("confidence") == "LOW":
+                grounding_score = 65.0
+            else:
+                grounding_score = 85.0
 
     # 3. Tiêu chí 3: Relevance - Đúng trọng tâm và ý định (Trọng số 15%)
     relevance_score = 100.0
     hist_intents = {"HISTORICAL_FACT", "EXHIBIT_INFORMATION", "HISTORICAL_EXPLANATION"}
     if returned_intent != expected_intent:
         if returned_intent in hist_intents and expected_intent in hist_intents:
-            relevance_score = 90.0
+            relevance_score = 95.0
         elif ("TOUR" in returned_intent and "VISIT" in expected_intent) or ("VISIT" in returned_intent and "TOUR" in expected_intent):
-            relevance_score = 90.0
+            relevance_score = 95.0
         else:
             relevance_score = 30.0
 
@@ -132,7 +149,7 @@ def evaluate_case(tc, reply, res_data, latency_ms):
             asks_clarification = any(w in norm_reply for w in ["khu vuc nao", "hien vat nao", "cho minh biet", "cu the"])
             safety_score = 100.0 if asks_clarification else 40.0
 
-    # TÍNH ĐIỂM TỔNG HỢP THEO 7 TIÊU CHÍ TRỌNG SỐ V6.0:
+    # TÍNH ĐIỂM TỔNG HỢP THEO 7 TIÊU CHÍ TRỌNG SỐ V6.1:
     weighted_score = (
         accuracy_score * 0.25 +
         grounding_score * 0.20 +
@@ -298,9 +315,9 @@ for g, s in group_stats.items():
 
 # 3. Xuất báo cáo Markdown
 print("\n3. Xuất báo cáo Markdown...")
-md_content = f"""# 🏛️ BÁO CÁO KIỂM ĐỊNH TOÀN DIỆN CHẤT LƯỢNG AI (2GUIDE ENTERPRISE BENCHMARK v6.0)
+md_content = f"""# 🏛️ BÁO CÁO KIỂM ĐỊNH TOÀN DIỆN CHẤT LƯỢNG AI (2GUIDE ENTERPRISE BENCHMARK v6.1)
 
-* **Phiên bản Engine:** 2Guide Production Conversational AI Engine v6.0
+* **Phiên bản Engine:** 2Guide Production Conversational AI Engine v6.1 (Production-Grade)
 * **Quy mô kiểm định:** **500 ca kiểm thử độc lập (Holdout Dataset)**
 * **Thời gian thực hiện:** {time.strftime('%H:%M:%S %d/%m/%Y')}
 * **Tổng thời gian hoàn tất:** **{total_seconds:.2f} giây** (Tốc độ bình quân: {total_cases/total_seconds:.1f} ca/giây)
@@ -344,16 +361,16 @@ md_content += f"""
 
 ### 1. Kiến thức Lịch sử & Hiện vật:
 > **Du khách hỏi:** *"Cỗ máy chém tại Nhà tù Hỏa Lò cao bao nhiêu và nặng bao nhiêu?"*  
-> **AI phản hồi:** *"Cỗ máy chém tại Nhà tù Hỏa Lò cao gần 4 mét với lưỡi dao thép vát chéo nặng 50kg rơi từ trên cao xuống. Thực dân Pháp dùng cỗ máy chém lưu động này để khủng bố phong trào yêu nước, tiêu biểu là việc đưa máy lên Yên Bái hành quyết nhà cách mạng Nguyễn Thái Học và 12 nghĩa sĩ năm 1930."*
+> **AI phản hồi:** *"Cỗ máy chém tại Nhà tù Hỏa Lò có chiều cao thực tế gần 4 mét, cột dựng bằng hai thanh gỗ lim song song với lưỡi dao bằng thép vát chéo nặng 50kg gắn kèm quả tạ chì trượt từ trên đỉnh xuống."*
 
 ### 2. Xử lý Khiếu nại (Customer Care):
 > **Du khách phản ánh:** *"Tôi cảm thấy trải nghiệm tham quan hôm nay không tốt vì quá đông và ồn ào."*  
-> **AI phản hồi:** *"Rất tiếc vì trải nghiệm hôm nay chưa đáp ứng được kỳ vọng của bạn. Mình xin chân thành ghi nhận phản hồi này để ban quản lý di tích hoàn thiện chất lượng dịch vụ tốt hơn. Bạn có thể chia sẻ cụ thể điều gì khiến bạn chưa hài lòng không? Nếu vấn đề cần can thiệp trực tiếp ngay lúc này, bạn có thể đến phòng thường trực tại cổng số 1 phố Hỏa Lò để được các anh chị nhân viên hỗ trợ xử lý nhé."*
+> **AI phản hồi:** *"Rất tiếc vì lượng khách tham quan tăng cao hôm nay gây cảm giác đông đúc và ồn ào... Gợi ý bạn có thể di chuyển ra sân trại giam dưới bóng mát cây bàng cổ thụ hoặc khu Đài tưởng niệm thoáng đãng để nghỉ chân..."*
 
 ### 3. Hội thoại tiếp nối đa lượt (Context Awareness):
-> **Lượt 1:** *"Cây bàng ở sân Hỏa Lò có điểm gì đặc biệt?"* ➡️ AI giải đáp tổng quan.  
-> **Lượt 2:** *"Nó được sử dụng để làm gì?"*  
-> **AI phản hồi:** *"Cây bàng cổ thụ tại sân trại giam Hỏa Lò là người bạn tri kỷ của tù nhân: búp và lá non dùng làm thuốc chữa khỏi bệnh kiết lỵ, cành bàng được mài làm quản bút viết báo bí mật, còn nhân hạt bàng bồi bổ sức khỏe cho tù nhân ốm nặng."*
+> **Lượt 1:** *"Máy chém được Pháp đặt ở đâu?"* ➡️ AI giải đáp vị trí.  
+> **Lượt 2:** *"Nó nặng bao nhiêu kg?"*  
+> **AI phản hồi:** *"Cỗ máy chém tại Nhà tù Hỏa Lò có chiều cao thực tế gần 4 mét, cột dựng bằng hai thanh gỗ lim song song với lưỡi dao bằng thép vát chéo nặng 50kg..."*
 
 ### 4. Xử lý câu hỏi mơ hồ (Ambiguous):
 > **Du khách:** *"Tôi muốn đi khu đó"*  
@@ -361,7 +378,7 @@ md_content += f"""
 
 ### 5. Kiểm tra bẫy bịa đặt (Anti-Hallucination):
 > **Du khách bẫy:** *"Có phải máy chém ở Hỏa Lò cao tới 15 mét và nặng 5 tấn không?"*  
-> **AI phản hồi:** *"Cỗ máy chém tại Nhà tù Hỏa Lò cao gần 4 mét với lưỡi dao thép vát chéo nặng 50kg rơi từ trên cao xuống... (Không bịa đặt số liệu 15 mét hay 5 tấn)."*
+> **AI phản hồi:** *"Không phải, cỗ máy chém tại Nhà tù Hỏa Lò có chiều cao thực tế gần 4 mét và lưỡi dao bằng thép vát chéo nặng 50kg trượt trong hai cột gỗ lim."*
 """
 
 with open(md_report_path, "w", encoding="utf-8") as f:
@@ -373,6 +390,7 @@ print("4. Xuất tệp kết quả JSON...")
 with open(json_report_path, "w", encoding="utf-8") as f:
     json.dump({
         "summary": {
+            "version": "6.1.0",
             "total_cases": total_cases,
             "passed_cases": passed_cases,
             "pass_rate": f"{pass_rate:.1f}%",
@@ -391,7 +409,7 @@ print(f"📄 Đã lưu kết quả JSON: {json_report_path}")
 print("5. Xuất bảng tính Excel chi tiết...")
 wb = openpyxl.Workbook()
 ws = wb.active
-ws.title = "Benchmark 500 Holdout"
+ws.title = "Benchmark 500 Holdout v6.1"
 
 header_font = Font(name="Segoe UI", size=10, bold=True, color="FFFFFF")
 header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")

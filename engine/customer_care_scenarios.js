@@ -1,16 +1,16 @@
 /**
- * 2Guide Professional Customer Care Scenario Engine v6.0
+ * 2Guide Advanced Customer Care Scenario Engine v6.1 (Production-Grade)
  * 
  * Quản lý 10 kịch bản Chăm sóc khách hàng, Trợ năng và Tình huống thực tế:
- * 1. COMPLAINT_HANDLING (Khiếu nại: thái độ, dịch vụ, chen chúc, tai nghe rè, hoàn tiền, ban quản lý)
+ * 1. COMPLAINT_HANDLING (Khiếu nại: thái độ nhân viên, dịch vụ, chen chúc, tai nghe rè, hoàn tiền, ban quản lý)
  * 2. LOST_AND_FOUND (Mất tài sản, ví tiền, điện thoại, balo)
- * 3. TICKET_SUPPORT (Vé ban ngày 50k, giảm 50% HSSV/người cao tuổi, tour đêm 399k-499k, vé cũ 30k hết hạn)
- * 4. TOUR_GUIDANCE (Tư vấn theo thời gian 20-30-45-90 phút, theo đoàn, gia đình)
+ * 3. TICKET_SUPPORT (Vé ban ngày 50k, giảm 50% HSSV/người cao tuổi, tour đêm 399k-499k, vé cũ 30k hết hạn, lỗi vé không vào được cổng)
+ * 4. TOUR_GUIDANCE (Tư vấn theo thời gian: 15 phút, 30-45 phút, 60-90 phút; gia đình, người cao tuổi)
  * 5. FACILITY_ASSISTANCE (Tủ gửi đồ miễn phí, nhà vệ sinh WC, quà lưu niệm, chụp ảnh)
- * 6. ACCESSIBILITY_ASSISTANCE (Xe lăn, dốc thoải, trẻ nhỏ, du khách khiếm thị)
- * 7. EMERGENCY_GUIDANCE (Y tế cấp cứu say nắng/ngất xỉu -> Trạm y tế cổng số 1, gọi 115, BV Việt Đức/Tim; Trẻ lạc)
- * 8. AUDIO_GUIDE_SUPPORT (Thuê 50k, đổi máy mới miễn phí ngay khi rè/hỏng)
- * 9. VISITOR_FEEDBACK (Sổ góp ý cổng số 1, gặp Tổ trưởng lễ tân)
+ * 6. ACCESSIBILITY_ASSISTANCE (Xe lăn, dốc thoải, người cao tuổi, trẻ nhỏ, du khách khiếm thị)
+ * 7. EMERGENCY_GUIDANCE (Y tế cấp cứu say nắng/ngất xỉu -> Trạm y tế cổng số 1, gọi 115, BV Việt Đức/Tim; Trẻ lạc khẩn cấp)
+ * 8. AUDIO_GUIDE_SUPPORT (Thuê 50k, đổi máy mới miễn phí ngay trong 1-2 phút khi rè/hỏng)
+ * 9. VISITOR_FEEDBACK (Sổ góp ý cổng số 1, gặp Tổ trưởng lễ tân/đón tiếp)
  * 10. GENERAL_ASSISTANCE (Tiếp đón chung, kết nối nhân viên số 1 phố Hỏa Lò)
  */
 
@@ -43,7 +43,7 @@ class CustomerCareScenarioEngine {
   }
 
   /**
-   * Xử lý kịch bản Chăm sóc khách hàng chuyên sâu theo ngữ cảnh và sub-intent
+   * Xử lý kịch bản Chăm sóc khách hàng chuyên sâu theo ngữ cảnh và sub-intent V6.1
    */
   resolveScenario({
     intent,
@@ -78,8 +78,8 @@ class CustomerCareScenarioEngine {
         return {
           scenarioId: 'COMPLAINT_AUDIO_DEVICE',
           response: isEn
-            ? 'We are truly sorry for the technical issue with your audio guide (crackling sound or audio interruption). To continue enjoying your tour, please bring the device back to the ticket counter at the entrance, and our staff will test and IMMEDIATELY REPLACE IT WITH A NEW UNIT FREE OF CHARGE.'
-            : 'Rất xin lỗi bạn về sự cố kỹ thuật của tai nghe thuyết minh (bị rè hoặc gián đoạn âm thanh). Để không làm ảnh hưởng hành trình tham quan, bạn hãy mang ngay máy về quầy vé ở cổng chính; các bạn nhân viên sẽ kiểm tra và ĐỔI NGAY MỘT MÁY MỚI HOÀN TOÀN MIỄN PHÍ cho bạn nhé!',
+            ? 'We are truly sorry for the technical issue with your audio guide (crackling sound or audio interruption). To continue enjoying your tour, please bring the device back to the ticket counter at the entrance, and our staff will test and IMMEDIATELY REPLACE IT WITH A NEW UNIT FREE OF CHARGE within 1-2 minutes.'
+            : 'Rất xin lỗi bạn về sự cố kỹ thuật của tai nghe thuyết minh (bị rè hoặc gián đoạn âm thanh). Để không làm ảnh hưởng hành trình tham quan, bạn hãy mang ngay máy về quầy vé ở cổng chính; các bạn nhân viên sẽ kiểm tra và ĐỔI NGAY MỘT MÁY MỚI HOÀN TOÀN MIỄN PHÍ cho bạn trong 1-2 phút nhé!',
           authorityBoundary: pol?.authority_boundary || 'Nhân viên quầy vé đổi máy mới ngay lập tức.',
           actionableGuidance: 'Mang máy về Quầy vé cổng chính để đổi máy mới miễn phí ngay lập tức.',
           requiresHuman: true,
@@ -151,10 +151,10 @@ class CustomerCareScenarioEngine {
         return {
           scenarioId: 'ASSISTANCE_LOST_CHILD',
           response: isEn
-            ? 'URGENT: Please stay calm and immediately alert the nearest security guard or receptionist, or run to the Main Security Office at Gate No. 1. Our security team will broadcast an urgent announcement across the entire site loudspeaker network and coordinate at all exits to find your child immediately!'
-            : 'TÌNH HUỐNG KHẨN CẤP: Bạn hãy giữ bình tĩnh và báo ngay cho nhân viên bảo vệ hoặc lễ tân gần nhất, hoặc chạy ngay ra phòng thường trực bảo vệ tại cổng chính số 1 Hỏa Lò. Đội ngũ an ninh di tích sẽ lập tức phát thông báo khẩn cấp trên hệ thống loa truyền thanh toàn di tích và phối hợp chốt chặn các cửa ra vào để tìm bé ngay lập tức!',
-          authorityBoundary: pol?.authority_boundary || 'Phát loa khẩn cấp toàn di tích và chốt chặn cửa ra vào.',
-          actionableGuidance: 'Báo ngay bảo vệ gần nhất hoặc chạy ra phòng thường trực cổng 1 phát loa.',
+            ? 'URGENT: Please stay calm and immediately contact the nearest security guard or approach the Security Office at Gate No. 1. Our security team will immediately broadcast an alert across our relic PA system and coordinate checkpoints at all exit gates to help locate your child.'
+            : 'KHẨN CẤP: Bạn hãy giữ bình tĩnh và báo ngay cho nhân viên bảo vệ gần nhất hoặc đến thẳng Phòng thường trực bảo vệ tại cổng chính số 1 Hỏa Lò. Đội ngũ an ninh di tích sẽ lập tức phát thông báo khẩn cấp trên hệ thống loa truyền thanh toàn di tích và chốt chặn các cửa ra vào để hỗ trợ tìm kiếm bé ngay lập tức.',
+          authorityBoundary: pol?.authority_boundary || 'Bảo vệ phát loa nội bộ khẩn cấp và chốt chặn cổng kiểm soát.',
+          actionableGuidance: 'Đến ngay Phòng thường trực Bảo vệ Cổng số 1 hoặc báo bảo vệ gần nhất.',
           requiresHuman: true,
           style: 'EMPATHETIC_SUPPORT'
         };
@@ -163,10 +163,10 @@ class CustomerCareScenarioEngine {
       if (sub === 'MEDICAL_EMERGENCY') {
         const pol = this.getPolicy('POLICY_FIRST_AID_MEDICAL');
         return {
-          scenarioId: 'ASSISTANCE_MEDICAL',
+          scenarioId: 'ASSISTANCE_MEDICAL_EMERGENCY',
           response: isEn
-            ? 'MEDICAL PRIORITY: Please notify the nearest security guard immediately or head to the First Aid Station at Gate No. 1. Our team is trained for initial first aid and will coordinate an emergency ambulance (115) or transfer to the nearby Hanoi Heart Hospital / Viet Duc Hospital if needed.'
-            : 'TÌNH HUỐNG SỨC KHỎE CẦN ƯU TIÊN: Bạn hãy thông báo gấp cho nhân viên bảo vệ gần nhất hoặc đưa người thân đến phòng thường trực y tế tại cổng số 1 Hỏa Lò để được sơ cấp cứu ban đầu. Nếu cần cấp cứu y tế chuyên sâu, nhân viên trực sẽ lập tức điều phối xe cứu thương 115 hoặc chuyển sang Bệnh viện Tim / Việt Đức ngay cạnh di tích.',
+            ? 'For medical assistance (heatstroke, dizziness, or fainting), please notify our on-duty guards immediately or escort the visitor to the First Aid Station at Gate No. 1. Our staff provides on-site first aid and coordinates 115 emergency services or immediate hospital transfer to Hanoi Heart Hospital or Viet Duc Hospital (500m away).'
+            : 'Nếu có người bị say nắng, ngất xỉu hoặc cần trợ giúp y tế khẩn cấp, bạn hãy báo ngay cho nhân viên bảo vệ gần nhất hoặc đưa người bệnh ra Trạm sơ cấp cứu tại phòng trực cổng chính số 1 Hỏa Lò. Nhân viên di tích có sẵn tủ thuốc sơ cứu và sẽ lập tức hỗ trợ gọi xe cấp cứu 115 hoặc chuyển viện gần nhất (Bệnh viện Tim Hà Nội hoặc Việt Đức cách 500m).',
           authorityBoundary: pol?.authority_boundary || 'Sơ cấp cứu tại chỗ, điều phối xe cấp cứu 115 hoặc chuyển viện gần nhất.',
           actionableGuidance: 'Báo bảo vệ gần nhất hoặc đưa người bệnh ra phòng y tế cổng số 1.',
           requiresHuman: true,
@@ -180,11 +180,25 @@ class CustomerCareScenarioEngine {
           scenarioId: 'ASSISTANCE_LOST_ITEM',
           response: isEn
             ? 'If you have lost personal belongings, please visit the Security Office at the main entrance (No. 1 Hoa Lo Street) to fill in the Lost & Found Registry. Our security team will cross-check items turned in during the day; internal security camera review is conducted by our security personnel according to duty protocols to assist you.'
-            : 'Bạn hãy đến ngay phòng thường trực bảo vệ tại cổng chính số 1 Hỏa Lò để khai báo thông tin vào \'Sổ tiếp nhận tài sản thất lạc\'. Đội an ninh sẽ đối chiếu các đồ vật do khách hoặc nhân viên nhặt được bàn giao trong ngày; quy trình trích xuất camera an ninh nội bộ sẽ do Đội bảo vệ thực hiện theo đúng thẩm quyền nghiệp vụ để hỗ trợ bạn.',
+            : 'Bạn hãy đến ngay phòng thường trực bảo vệ tại cổng chính số 1 Hỏa Lò để khai báo thông tin vào "Sổ tiếp nhận tài sản thất lạc". Đội an ninh sẽ đối chiếu các đồ vật do khách hoặc nhân viên nhặt được bàn giao trong ngày; quy trình trích xuất camera an ninh nội bộ sẽ do Đội bảo vệ thực hiện theo đúng thẩm quyền nghiệp vụ để hỗ trợ bạn.',
           authorityBoundary: pol?.authority_boundary || 'Khai báo sổ tài sản thất lạc. Trích xuất camera do Đội bảo vệ thực hiện theo thẩm quyền nghiệp vụ.',
           actionableGuidance: 'Khai báo tại Phòng thường trực bảo vệ Cổng số 1 Hỏa Lò.',
           requiresHuman: true,
           style: 'CUSTOMER_CARE'
+        };
+      }
+
+      if (sub === 'TICKET_ISSUE' || /không vào được|lỗi vé|không quét được|mã qr|không nhận vé|kẹt cổng/i.test(normQuery)) {
+        const pol = this.getPolicy('POLICY_TICKET_ENTRY_ERROR');
+        return {
+          scenarioId: 'TICKET_ENTRY_ISSUE',
+          response: isEn
+            ? 'If you have purchased a ticket but cannot pass the barrier: 1) For QR codes, turn your phone brightness to maximum and ensure the QR is for today; 2) If the automatic reader fails, show the ticket/screen to the guard directly at the gate for manual scan; 3) If the code is unreadable, please approach Ticket Counter No. 1 (5 meters away) to receive a replacement ticket in 1 minute.'
+            : 'Nếu bạn đã mua vé nhưng không qua được cổng kiểm soát: 1) Với vé điện tử/mã QR, bạn bật độ sáng màn hình tối đa và kiểm tra đúng ngày tham quan; 2) Nếu đầu đọc tự động không nhận, bạn đưa vé hoặc màn hình cho nhân viên soát vé đứng ngay tại cửa để được quét thủ công hoặc mở cổng trực tiếp; 3) Nếu vé bị lỗi mã vạch, bạn đến ngay Quầy vé số 1 (cách cửa 5 mét) để được cấp thẻ thay thế trong 1 phút nhé.',
+          authorityBoundary: pol?.authority_boundary || 'Nhân viên soát vé và quầy vé cổng số 1 hỗ trợ ngay lập tức.',
+          actionableGuidance: 'Đưa vé cho nhân viên soát vé tại cửa hoặc đến Quầy vé số 1 hỗ trợ.',
+          requiresHuman: true,
+          style: 'QUICK_ANSWER'
         };
       }
 
@@ -217,6 +231,7 @@ class CustomerCareScenarioEngine {
     if (intent === 'ACCESSIBILITY_SUPPORT') {
       const isBlind = normQuery.includes('khiem thi') || normQuery.includes('nguoi mu') || normQuery.includes('gay dan duong');
       const isChildren = normQuery.includes('tre em') || normQuery.includes('tre con') || normQuery.includes('em be') || normQuery.includes('con nho') || normQuery.includes('tre nho');
+      const isElderly = userProfile?.hasElderly || normQuery.includes('nguoi gia') || normQuery.includes('nguoi cao tuoi') || normQuery.includes('bo me lon tuoi') || normQuery.includes('ong ba');
 
       if (isBlind) {
         return {
@@ -245,28 +260,57 @@ class CustomerCareScenarioEngine {
         };
       }
 
+      if (isElderly) {
+        const pol = this.getPolicy('POLICY_ACCESSIBILITY_WHEELCHAIR');
+        return {
+          scenarioId: 'ACCESSIBILITY_ELDERLY',
+          response: isEn
+            ? 'For elderly visitors, the site features ramp access at main corridors and shaded stone benches under the ancient banyan tree in the courtyard. If needed, you can register for wheelchair assistance or request on-site security guards to assist with walking through historical stone steps.'
+            : 'Đối với du khách cao tuổi, di tích đã bố trí đường dốc thoải tại các lối đi chính và nhiều ghế đá nghỉ chân rợp bóng mát dưới cây bàng sân trại giam. Bạn có thể đăng ký mượn xe lăn hoặc nhờ các anh chị bảo vệ hỗ trợ dìu các cụ qua một số bậc tam cấp cổ nhé.',
+          authorityBoundary: pol?.authority_boundary || 'Nhân viên bảo vệ hỗ trợ người cao tuổi.',
+          actionableGuidance: 'Nghỉ chân dưới bóng cây bàng sân trại; nhờ bảo vệ hỗ trợ bậc tam cấp.',
+          requiresHuman: false,
+          style: 'CUSTOMER_CARE'
+        };
+      }
+
       const pol = this.getPolicy('POLICY_ACCESSIBILITY_WHEELCHAIR');
       return {
-        scenarioId: 'ACCESSIBILITY_WHEELCHAIR_ELDERLY',
+        scenarioId: 'ACCESSIBILITY_WHEELCHAIR',
         response: isEn
-          ? 'Hoa Lo Prison is a historic building dating back to 1896 with some high stone thresholds. Ramps are equipped along main corridors, and our staff are always glad to assist visitors with wheelchairs or elderly guests.'
-          : 'Di tích Nhà tù Hỏa Lò là công trình cổ xây dựng từ năm 1896 nên một số lối đi có bậc tam cấp. Ban quản lý đã bố trí dốc thoải ở các trục chính; nhân viên bảo vệ và lễ tân luôn sẵn lòng hỗ trợ dìu hoặc đẩy xe lăn khi du khách có nhu cầu.',
-        authorityBoundary: pol?.authority_boundary || 'Dốc thoải trục chính; nhân viên hỗ trợ đẩy xe lăn.',
-        actionableGuidance: 'Đi theo trục dốc thoải; liên hệ bảo vệ khi cần trợ giúp đẩy xe qua bậc đá.',
+          ? 'Hoa Lo Prison Relic has ramp access at major entrances for wheelchair users. Security guards and reception staff are always available to assist with navigating steps. Shaded resting benches are located in the courtyard under the banyan tree.'
+          : 'Di tích Nhà tù Hỏa Lò có trang bị đường dốc thoải tại các lối đi chính phục vụ du khách sử dụng xe lăn. Nhân viên bảo vệ luôn túc trực để hỗ trợ đẩy xe qua các bậc tam cấp cổ khi cần. Sân trại giam có ghế nghỉ chân rợp mát dưới bóng cây bàng lịch sử.',
+        authorityBoundary: pol?.authority_boundary || 'Đội bảo vệ hỗ trợ di chuyển xe lăn.',
+        actionableGuidance: 'Sử dụng đường dốc tại lối đi chính hoặc nhờ bảo vệ hỗ trợ xe lăn.',
         requiresHuman: false,
         style: 'CUSTOMER_CARE'
       };
     }
 
-    // 4. KỊCH BẢN THÔNG TIN VÉ & ƯU ĐÃI (TICKET_INFORMATION)
+    // 4. KỊCH BẢN THÔNG TIN VÉ & SỰ CỐ VÀO CỔNG (TICKET_INFORMATION)
     if (intent === 'TICKET_INFORMATION') {
-      if (normQuery.includes('sinh vien') || normQuery.includes('hoc sinh') || normQuery.includes('hssv')) {
+      const isEntryIssue = /không vào được|lỗi vé|không quét được|mã qr|không nhận vé|kẹt cổng/i.test(normQuery);
+      if (isEntryIssue) {
+        const pol = this.getPolicy('POLICY_TICKET_ENTRY_ERROR');
         return {
-          scenarioId: 'TICKET_STUDENT_DISCOUNT',
+          scenarioId: 'TICKET_ENTRY_ISSUE',
           response: isEn
-            ? 'Students enjoy a 50% discount on daytime admission, priced at 25,000 VND per ticket (please present a valid student ID card at the ticket booth).'
-            : 'Đối với học sinh, sinh viên, giá vé được giảm 50% chỉ còn 25.000 VNĐ/vé khi xuất trình thẻ học sinh, sinh viên hợp lệ tại quầy vé.',
-          authorityBoundary: 'Quầy vé kiểm tra thẻ HSSV hợp lệ trước khi xuất vé ưu đãi.',
+            ? 'If you have purchased a ticket but cannot pass the barrier: 1) For QR codes, turn your phone brightness to maximum and ensure the QR is for today; 2) If the automatic reader fails, show the ticket/screen to the guard directly at the gate for manual scan; 3) If the code is unreadable, please approach Ticket Counter No. 1 (5 meters away) to receive a replacement ticket in 1 minute.'
+            : 'Nếu bạn đã mua vé nhưng không qua được cổng kiểm soát: 1) Với vé điện tử/mã QR, bạn bật độ sáng màn hình tối đa và kiểm tra đúng ngày tham quan; 2) Nếu đầu đọc tự động không nhận, bạn đưa vé hoặc màn hình cho nhân viên soát vé đứng ngay tại cửa để được quét thủ công hoặc mở cổng trực tiếp; 3) Nếu vé bị lỗi mã vạch, bạn đến ngay Quầy vé số 1 (cách cửa 5 mét) để được cấp thẻ thay thế trong 1 phút nhé.',
+          authorityBoundary: pol?.authority_boundary || 'Nhân viên soát vé và quầy vé cổng số 1 hỗ trợ ngay lập tức.',
+          actionableGuidance: 'Đưa vé cho nhân viên soát vé tại cửa hoặc đến Quầy vé số 1 hỗ trợ.',
+          requiresHuman: true,
+          style: 'QUICK_ANSWER'
+        };
+      }
+
+      if (normQuery.includes('sinh vien') || normQuery.includes('hoc sinh') || normQuery.includes('hssv') || normQuery.includes('giam gia')) {
+        return {
+          scenarioId: 'TICKET_DISCOUNT_STUDENT',
+          response: isEn
+            ? 'Pupils and students with a valid student ID enjoy a 50% discount on daytime admission, priced at 25,000 VND/ticket. Please present your student card directly at the ticket booth at Gate No. 1.'
+            : 'Học sinh, sinh viên xuất trình thẻ HSSV hợp lệ được giảm 50% giá vé tham quan ban ngày, chỉ còn 25.000 VNĐ/vé. Bạn vui lòng xuất trình thẻ tại quầy vé cổng chính số 1 Hỏa Lò khi mua vé nhé.',
+          authorityBoundary: 'Kiểm tra thẻ HSSV tại quầy vé cổng chính.',
           actionableGuidance: 'Xuất trình thẻ HSSV tại Quầy vé cổng chính để nhận ưu đãi 25.000 VNĐ/vé.',
           requiresHuman: false,
           style: 'QUICK_ANSWER'
@@ -339,10 +383,10 @@ class CustomerCareScenarioEngine {
         return {
           scenarioId: 'FACILITY_STORAGE',
           response: isEn
-            ? 'Free storage lockers are provided near the ticket checkpoint for backpacks and bulky luggage. Please keep your valuables (wallet, phone, documents) with you.'
-            : 'Di tích có khu vực tủ gửi đồ cá nhân miễn phí nằm ngay cạnh cổng soát vé cho balo và túi xách lớn. Du khách vui lòng tự giữ các tài sản quý giá như ví tiền và điện thoại bên mình nhé.',
-          authorityBoundary: 'Tủ gửi đồ miễn phí cạnh cổng soát vé.',
-          actionableGuidance: 'Gửi balo, túi lớn tại tủ đồ cạnh cổng soát vé; tự giữ tư trang quý giá.',
+            ? 'Free personal luggage lockers are available right next to the entrance turnstile for medium-sized backpacks and bags. Visitors are advised to keep high-value items (wallets, phones) with them.'
+            : 'Di tích có hệ thống tủ khóa gửi đồ cá nhân miễn phí nằm ngay cạnh lối vào soát vé dành cho balo và hành lý cỡ vừa. Du khách vui lòng tự mang theo các tài sản có giá trị như ví tiền, điện thoại bên mình nhé.',
+          authorityBoundary: 'Tủ khóa gửi đồ miễn phí cạnh lối soát vé.',
+          actionableGuidance: 'Gửi balo tại tủ khóa miễn phí cạnh cửa soát vé.',
           requiresHuman: false,
           style: 'QUICK_ANSWER'
         };
@@ -388,8 +432,22 @@ class CustomerCareScenarioEngine {
 
     // 7. KỊCH BẢN TƯ VẤN HÀNH TRÌNH (TOUR_RECOMMENDATION)
     if (intent === 'TOUR_RECOMMENDATION' || intent === 'VISIT_GUIDANCE') {
-      const hasSpecificShortConstraint = userProfile?.timeConstraint != null && userProfile.timeConstraint <= 45;
-      const isShort = hasSpecificShortConstraint || /ít thời gian|20 phút|30 phút|45 phút|vội|nhanh/i.test(normQuery);
+      const timeConstraint = userProfile?.timeConstraint;
+      const isUltraShort = (timeConstraint != null && timeConstraint <= 20) || /15 phút|15 phut|15p|rất vội|rat voi|cực nhanh|cuc nhanh/i.test(normQuery);
+      const isShort = (timeConstraint != null && timeConstraint <= 45) || /ít thời gian|it thoi gian|20 phút|20 phut|30 phút|30 phut|45 phút|45 phut|vội|voi|nhanh/i.test(normQuery);
+
+      if (isUltraShort) {
+        return {
+          scenarioId: 'TOUR_ULTRA_SHORT_15MIN',
+          response: isEn
+            ? 'If you only have 15 minutes (or 15-20 minutes), focus on 3 core must-see landmarks: 1) Main Entrance Maison Centrale ➡️ 2) Ancient Banyan Tree in the prison courtyard ➡️ 3) The Memorial Monument & Relief.'
+            : 'Nếu chỉ có 15 phút (hoặc 15 đến 20 phút), bạn nên đi thẳng vào 3 điểm cốt lõi nhất: 1) Cổng chính Maison Centrale ➡️ 2) Cây bàng cổ thụ tại sân trại giam ➡️ 3) Đài tưởng niệm & Bức phù điêu tri ân các chiến sĩ cách mạng.',
+          authorityBoundary: 'Tuyến tham quan 15-20 phút siêu tốc.',
+          actionableGuidance: 'Đi nhanh 3 điểm: Cổng chính ➡️ Cây bàng ➡️ Đài tưởng niệm.',
+          requiresHuman: false,
+          style: 'SMART_RECOMMENDATION'
+        };
+      }
 
       if (isShort) {
         return {
@@ -409,10 +467,10 @@ class CustomerCareScenarioEngine {
         response: isEn
           ? 'A standard visit takes 60 to 90 minutes following the numbered sequence: Main gate ➡️ Collective male cells ➡️ Cachot ➡️ Female cell ➡️ Courtyard & Banyan tree ➡️ Death row Area D ➡️ Guillotine ➡️ Escape sewer ➡️ American pilot section ➡️ Memorial monument. Renting an audio guide will enhance your experience.'
           : 'Chuyến tham quan tiêu chuẩn kéo dài khoảng 60 đến 90 phút theo thứ tự các điểm dừng: Cổng chính Maison Centrale ➡️ Phòng giam tập thể nam ➡️ Ngục tối Cachot ➡️ Trại giam Nữ ➡️ Sân trại giam & Cây bàng cổ thụ ➡️ Xà lim tử hình Khu D ➡️ Cỗ máy chém ➡️ Cửa cống ngầm ➡️ Khu trưng bày phi công Mỹ ➡️ Đài tưởng niệm. Bạn nên thuê thêm tai nghe Audioguide để nghe thuyết minh chi tiết nhé.',
-        authorityBoundary: 'Lộ trình chuẩn 10 chặng dừng.',
-        actionableGuidance: 'Theo tuyến tham quan đánh số thứ tự 1 đến 10.',
+        authorityBoundary: 'Lộ trình chuẩn 10 chặng di tích.',
+        actionableGuidance: 'Tham quan theo thứ tự số thứ tự các phòng giam (60-90 phút).',
         requiresHuman: false,
-        style: 'SMART_RECOMMENDATION'
+        style: 'TOUR_GUIDANCE'
       };
     }
 

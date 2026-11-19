@@ -1,22 +1,22 @@
 /**
- * 2Guide Production Conversational AI Engine v6.0 (Production-Grade Edition)
+ * 2Guide Production Conversational AI Engine v6.1 (Production-Grade Edition)
  * 
  * KIẾN TRÚC 8 TẦNG XỬ LÝ DOANH NGHIỆP:
- * 1. INPUT PROCESSING & PROFILE SIGNALS: Chuẩn hóa, lọc mã độc, trích xuất nhu cầu cá nhân hóa.
- * 2. SEMANTIC INTENT UNDERSTANDING: Phân tích 4 chiều (Intent, SubIntent, Subject, Aspect).
- * 3. HYBRID CONTEXT RETRIEVAL: Exact Ground Truth, Verified Service Knowledge SSOT, Semantic Aspect Dossiers.
- * 4. INTELLIGENT RESPONSE CACHING: In-memory LRU Cache, phân loại 5 Request Tiers, kiểm soát chi phí LLM.
- * 5. ANSWER COMPOSER V2: Grounded Dynamic Generation, tích hợp 10 Scenarios CSKH, trả lời trực diện.
- * 6. ANSWER VALIDATION V2: Claim-level verification, Clean Replacement, Confidence Calibration thực tế.
- * 7. STRUCTURED CONVERSATION STATE: Lưu trữ thực thể, khía cạnh đã trao đổi, cách ly phiên (Session Isolation).
- * 8. PRODUCTION HARDENING: CORS, Rate Limiting (60 req/min), Payload Limit (32KB), Safe Error Handling.
+ * 1. INPUT PROCESSING & PROFILE SIGNALS: Chuẩn hóa gõ, lọc injection, trích xuất nhu cầu cá nhân hóa (thời gian, người già, trẻ nhỏ, xe lăn).
+ * 2. SEMANTIC INTENT UNDERSTANDING: Phân tích 4 chiều (Intent, SubIntent, Subject, Aspect, Urgency).
+ * 3. HYBRID CONTEXT RETRIEVAL: Ground Truth sử học, SSOT Service Knowledge, Hồ sơ phân khu & khía cạnh.
+ * 4. INTELLIGENT RESPONSE CACHING V2: Cache Key đa chiều, bảo vệ dữ liệu cá nhân hóa, theo dõi Token & Cost P50/P95.
+ * 5. ADAPTIVE ANSWER COMPOSER V2: Không sao chép cứng Ground Truth, thích ứng theo khía cạnh, không văn mẫu khuôn sáo.
+ * 6. REAL CLAIM-LEVEL VERIFICATION: Tách mệnh đề độc lập, đối chiếu bằng chứng, Clean Replacement, hiệu chuẩn Confidence thực tế.
+ * 7. STRUCTURED CONVERSATION STATE: Cryptographic Session ID, theo dõi tiến trình thực thể, cách ly tuyệt đối (Session Isolation).
+ * 8. PRODUCTION HARDENING: Configurable CORS, Rate Limiting (120 req/m) an toàn Proxy, Payload Limit (32KB), Safe Error Handling.
  */
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-// Nạp biến môi trường từ file .env
+// Nạp biến môi trường từ file .env nếu có
 const envPath = path.join(__dirname, '.env');
 if (fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, 'utf8');
@@ -37,7 +37,11 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const PRIMARY_MODEL = 'qwen/qwen3.8-27b';
 const MAX_PAYLOAD_BYTES = 32 * 1024; // 32KB
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 phút
-const MAX_REQUESTS_PER_WINDOW = 120; // 120 req/phút/IP (hỗ trợ kiểm thử tải cao)
+const MAX_REQUESTS_PER_WINDOW = 120; // 120 req/phút/IP
+const TRUST_PROXY = process.env.TRUST_PROXY === 'true';
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
+  : ['*'];
 
 // Nạp các Engine độc lập
 const nlp = require('./engine/nlp_processor');
@@ -128,7 +132,7 @@ class ProductionSmartTourGuideServer {
   }
 
   /**
-   * Xử lý câu hỏi của khách tham quan theo kiến trúc 8 tầng V6.0
+   * Xử lý câu hỏi của khách tham quan theo kiến trúc 8 tầng V6.1
    */
   async handleAsk(body) {
     const startTime = Date.now();
@@ -156,7 +160,7 @@ class ProductionSmartTourGuideServer {
 
     // TẦNG 2: SEMANTIC INTENT UNDERSTANDING (4-Dimensional Analysis)
     const intentAnalysis = classifier.classify(activeQuery, session.lastContext);
-    const intent = intentAnalysis.intent;
+    let intent = intentAnalysis.intent;
     const subIntent = intentAnalysis.subIntent || null;
     const subject = intentAnalysis.subject || session.state?.currentSubject || null;
     const aspect = intentAnalysis.aspect || 'GENERAL';
@@ -190,6 +194,9 @@ class ProductionSmartTourGuideServer {
       retrievedData.facts.push(gt.item.reference_answer || gt.item.verified_answer);
       topicId = gt.item.id;
       topicName = gt.item.artifact || gt.item.area;
+      if (gt.type === 'EXACT' && !intentAnalysis.isSafetyOrSecurity && intent !== INTENTS.EXPIRED_POLICY && intent !== INTENTS.OUT_OF_SCOPE) {
+        intent = INTENTS.HISTORICAL_FACT;
+      }
     }
 
     // 2. Tra cứu Chính sách Dịch vụ Đã Xác Thực (SSOT)
@@ -221,7 +228,14 @@ class ProductionSmartTourGuideServer {
     }
 
     // TẦNG 4: INTELLIGENT RESPONSE CACHING (Kiểm tra Cache trước khi xử lý sâu)
-    const cachedItem = responseCache.get(activeQuery, subject || '', language);
+    const cachedItem = responseCache.get({
+      query: activeQuery,
+      subject: subject || '',
+      aspect,
+      language,
+      intent
+    });
+
     if (cachedItem && !followUp.isFollowUp) {
       const resolvedTopicName = (subject && HISTORICAL_EXHIBITS[subject] ? HISTORICAL_EXHIBITS[subject].name : null) || topicName || 'Di tích Hỏa Lò';
       const resolvedTopicId = subject || topicId;
@@ -235,6 +249,8 @@ class ProductionSmartTourGuideServer {
       });
       const latencyMs = Date.now() - startTime;
       this.stats.totalLatencyMs += latencyMs;
+      responseCache.recordLatency(latencyMs);
+
       return {
         success: true,
         data: {
@@ -246,7 +262,7 @@ class ProductionSmartTourGuideServer {
       };
     }
 
-    // TẦNG 5: ANSWER GENERATION (Answer Composer V2)
+    // TẦNG 5: ANSWER GENERATION (Adaptive Answer Composer V2)
     const composerResult = await composer.compose({
       question: activeQuery,
       intent,
@@ -257,6 +273,7 @@ class ProductionSmartTourGuideServer {
       retrievedData,
       language,
       session,
+      userProfile: userProfileSignals,
       groqCaller: (q, sysPrompt, hist) => this.callGroq(q, sysPrompt, hist)
     });
 
@@ -264,9 +281,10 @@ class ProductionSmartTourGuideServer {
     const confidenceScore = composerResult.confidenceScore || 0.95;
     this.stats.confidenceCount[confidence] = (this.stats.confidenceCount[confidence] || 0) + 1;
 
-    // TẦNG 6: ANSWER VALIDATION V2 (Claim-level verification)
-    const finalReply = validator.validateAndRefine(composerResult.reply, intent);
-    const claims = validator.extractClaims(finalReply);
+    // TẦNG 6: ANSWER VALIDATION V2 (Real Claim-Level Verification & Correction)
+    const finalReply = composerResult.reply;
+    const claims = composerResult.claims || [];
+    const verifiedClaims = composerResult.verifiedClaims || [];
 
     // Xác định Request Tier
     const requestTier = responseCache.classifyTier({
@@ -295,8 +313,9 @@ class ProductionSmartTourGuideServer {
 
     const latencyMs = Date.now() - startTime;
     this.stats.totalLatencyMs += latencyMs;
+    responseCache.recordLatency(latencyMs);
 
-    // TẦNG 8: FINAL RESPONSE (Đầy đủ Metadata V6.0)
+    // TẦNG 8: FINAL RESPONSE (Đầy đủ Metadata V6.1)
     const responseData = {
       reply: finalReply,
       intent: intent,
@@ -309,13 +328,17 @@ class ProductionSmartTourGuideServer {
       confidenceScore: confidenceScore,
       requestTier: requestTier,
       sources: composerResult.sources || (policyResult ? [policyResult.policy.source] : ['Ban Quản Lý Di Tích Nhà Tù Hỏa Lò']),
-      claims: composerResult.claims || claims.slice(0, 3),
+      claims: claims.slice(0, 4),
+      verifiedClaims: verifiedClaims.slice(0, 4),
+      wasCorrected: composerResult.wasCorrected || false,
       policy: policyResult ? {
         id: policyResult.policy.id,
         title: policyResult.policy.title,
-        source: policyResult.policy.source,
+        officialSource: policyResult.policy.official_source,
+        sourceUrl: policyResult.policy.source_url,
         status: policyResult.policy.status,
         isExpired: policyResult.isExpired || false,
+        responsibleDepartment: policyResult.policy.responsible_department,
         authority: policyResult.policy.authority_boundary
       } : null,
       requiresHuman: composerResult.requiresHuman || false,
@@ -325,13 +348,22 @@ class ProductionSmartTourGuideServer {
       resolvedQuery: followUp.isFollowUp ? activeQuery : undefined,
       sessionId: session.id,
       latencyMs: latencyMs,
-      provider: '2Guide Production Conversational AI Engine v6.0'
+      provider: '2Guide Production Conversational AI Engine v6.1'
     };
 
-    // Lưu vào LRU Cache nếu không phải session cá nhân hóa đặc thù
-    if (!followUp.isFollowUp && confidence === 'HIGH') {
-      responseCache.set(activeQuery, subject || '', language, responseData);
-    }
+    // Lưu vào LRU Cache nếu đủ điều kiện
+    responseCache.set({
+      query: activeQuery,
+      subject: subject || '',
+      aspect,
+      language,
+      intent
+    }, responseData, {
+      isFollowUp: followUp.isFollowUp,
+      userProfile: userProfileSignals,
+      intent,
+      confidence
+    });
 
     return {
       success: true,
@@ -344,9 +376,13 @@ class ProductionSmartTourGuideServer {
 const engine = new ProductionSmartTourGuideServer();
 
 const server = http.createServer(async (req, res) => {
-  // 1. CORS Headers an toàn
-  const origin = req.headers.origin || '*';
-  res.setHeader('Access-Control-Allow-Origin', origin);
+  // 1. Configurable CORS Headers
+  const reqOrigin = req.headers.origin || '';
+  let allowOrigin = '*';
+  if (!ALLOWED_ORIGINS.includes('*')) {
+    allowOrigin = ALLOWED_ORIGINS.includes(reqOrigin) ? reqOrigin : (ALLOWED_ORIGINS[0] || '');
+  }
+  res.setHeader('Access-Control-Allow-Origin', allowOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key');
 
@@ -356,9 +392,12 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+  // 2. Safe IP Detection with Trust Proxy Support
+  const clientIp = TRUST_PROXY && req.headers['x-forwarded-for']
+    ? req.headers['x-forwarded-for'].split(',')[0].trim()
+    : req.socket.remoteAddress || '127.0.0.1';
 
-  // 2. Rate Limiting Middleware
+  // 3. Rate Limiting Middleware
   if (!engine.checkRateLimit(clientIp)) {
     res.writeHead(429, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
@@ -368,7 +407,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 3. API Key Protection (Nếu có cấu hình biến môi trường API_KEY)
+  // 4. API Key Protection (Nếu cấu hình)
   if (API_KEY) {
     const authHeader = req.headers['authorization'] || '';
     const customKey = req.headers['x-api-key'] || '';
@@ -422,7 +461,7 @@ const server = http.createServer(async (req, res) => {
       ? (engine.stats.totalLatencyMs / engine.stats.totalRequests).toFixed(2)
       : 0;
     res.end(JSON.stringify({
-      server: '2Guide Production Conversational AI Engine v6.0 (Production-Grade)',
+      server: '2Guide Production Conversational AI Engine v6.1 (Production-Grade)',
       activeSessions: sessionManager.getSessionCount(),
       stats: {
         ...engine.stats,
@@ -430,16 +469,16 @@ const server = http.createServer(async (req, res) => {
       },
       cacheStats: responseCache.getStats(),
       uptimeSeconds: process.uptime()
-    }, null, 2));
+    }));
     return;
   }
 
-  // Health check (/health)
-  if (parsedUrl.pathname === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+  // Endpoint Kiểm tra trạng thái máy chủ (/health)
+  if (parsedUrl.pathname === '/health' || parsedUrl.pathname === '/api/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
       status: 'UP',
-      version: '6.0.0 (Production-Grade Conversational AI)',
+      version: '6.1.0 (Production-Grade Conversational AI)',
       port: PORT,
       memoryUsage: process.memoryUsage(),
       activeSessions: sessionManager.getSessionCount()
@@ -447,19 +486,22 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-  res.end('2Guide AI Server v6.0 - 404 Not Found');
+  // Tuyến đường mặc định 404
+  res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.end(JSON.stringify({ success: false, error: 'Đường dẫn không tồn tại trên hệ thống 2Guide AI API.' }));
 });
 
 server.listen(PORT, () => {
   console.log('\n======================================================');
-  console.log(`🎉 2GUIDE PRODUCTION CONVERSATIONAL AI v6.0 ĐÃ SẴN SÀNG!`);
+  console.log('🎉 2GUIDE PRODUCTION CONVERSATIONAL AI v6.1 ĐÃ SẴN SÀNG!');
   console.log('======================================================');
   console.log(`🌐 Cổng dịch vụ:     http://localhost:${PORT}`);
   console.log(`🎯 API Chat:         http://localhost:${PORT}/api/chat/ask`);
   console.log(`📊 Giám sát & Stats: http://localhost:${PORT}/stats`);
-  console.log(`🧠 Kiến trúc:        8 Tầng (NLP ➡️ Intent ➡️ Hybrid KB ➡️ Cache ➡️ Composer ➡️ Validator)`);
+  console.log('🧠 Kiến trúc:        8 Tầng (NLP ➡️ Intent ➡️ Hybrid KB ➡️ Cache ➡️ Composer ➡️ Validator)');
   console.log(`⚡ AI Nền tảng:      Groq Cloud LLM (${PRIMARY_MODEL}) + Heritage Precision Engine`);
-  console.log(`🛡️ Bảo mật:          Rate Limit (120 req/m) + Payload Limit (32KB) + CORS + Session Isolation`);
+  console.log('🛡️ Bảo mật:          Rate Limit (120 req/m) + Payload Limit (32KB) + CORS + Session Isolation');
   console.log('======================================================\n');
 });
+
+module.exports = { engine, server };

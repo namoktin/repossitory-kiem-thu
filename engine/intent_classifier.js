@@ -236,8 +236,15 @@ class IntentClassifier {
     // 5. Hỗ trợ khẩn cấp / Mất đồ / Cấp cứu y tế (Customer Assistance)
     const isLostItem = (
       !norm.includes('ban roi') && !norm.includes('may bay') && !norm.includes('phi cong') &&
-      (norm.includes('mat') || norm.includes('that lac') || norm.includes('quen') || norm.includes('roi') || norm.includes('lost')) &&
-      (norm.includes(' vi ') || norm.includes(' do ') || norm.includes('dien thoai') || norm.includes('giay to') || norm.includes('tui') || norm.includes('balo') || norm.includes('tai san') || norm.includes('wallet') || norm.includes('phone') || norm.includes('item') || norm.includes('bag'))
+      (
+        /\b(?:bi roi|danh roi|lam roi|bi mat|that lac|de quen|bo quen|quen)\b.*?\b(?:vi tien|chiec vi|cai vi|bop tien|bop|dien thoai|ao khoac|tui xach|balo|giay to|tai san|do dac|do ca nhan)\b/i.test(norm) ||
+        norm.includes('mat do') || norm.includes('that lac') || norm.includes('quen do') ||
+        norm.includes('roi vi') || norm.includes('roi do') || norm.includes('danh roi') ||
+        norm.includes('lam roi') || norm.includes('mat vi') || norm.includes('mat dien thoai') ||
+        norm.includes('mat giay to') || norm.includes('mat vi tien') || norm.includes('roi vi tien') ||
+        norm.includes('bi roi vi') || norm.includes('roi vi tien') || norm.includes('roi tien') ||
+        norm.includes('lost item') || norm.includes('lost my') || norm.includes('lost phone') || norm.includes('lost wallet')
+      )
     );
     const assistanceSignals = [
       'mat do', 'that lac', 'quen do', 'roi do', 'roi vi', 'mat dien thoai',
@@ -272,7 +279,9 @@ class IntentClassifier {
     }
 
     // 6. Tư vấn hành trình & Lộ trình (Tour Recommendation)
+    const isHistoricalDuration = norm.includes('xay dung') || norm.includes('thi cong') || norm.includes('hoan thanh') || norm.includes('xay');
     const recommendationSignals = [
+      '15 phut', 'co 15 phut', 'chi co 15 phut', '20 phut', 'co 20 phut', 'xem duoc gi', 'xem duoc nhung gi', 'nen xem gi', 'nen xem nhung gi',
       'nen tham quan gi truoc', 'it thoi gian', 'co 30 phut', 'co 45 phut', 'co 1 tieng',
       'goi y lo trinh', 'tham quan theo nhom', 'di cung gia dinh', 'co nen di tour dem',
       'tour dem co gi', 'lo trinh nao tot nhat', 'tu van giup toi', 'bao nhieu thoi gian',
@@ -280,9 +289,9 @@ class IntentClassifier {
       'buoi toi o hoa lo co hoat dong gi', 'buoi toi co hoat dong gi', 'buoi toi',
       'di 20 nguoi', 'di theo doan', 'doan dong', 'dat thuyet minh vien',
       'lo trinh phu hop nhat', 'lo trinh tham quan', 'lo trinh nao', 'lo trinh',
-      'what to see', 'recommendation', 'itinerary', 'limited time', '30 minutes', '45 minutes', 'must see', 'highlights', 'group tour'
+      'what to see', 'recommendation', 'itinerary', 'limited time', '15 minutes', '20 minutes', '30 minutes', '45 minutes', 'must see', 'highlights', 'group tour', 'what can i see'
     ];
-    if (recommendationSignals.some(s => norm.includes(s))) {
+    if (!isHistoricalDuration && recommendationSignals.some(s => norm.includes(s))) {
       return {
         intent: INTENTS.TOUR_RECOMMENDATION,
         subIntent: null,
@@ -330,13 +339,14 @@ class IntentClassifier {
     }
 
     // 9. Giờ mở cửa & Lịch hoạt động (Opening Hours)
+    const isHistoricalOpening = (norm.includes('nam nao') || norm.includes('khi nao') || norm.includes('moc thoi gian')) && (norm.includes('cai tao') || norm.includes('xep hang') || norm.includes('di tich') || norm.includes('bao tang'));
     const hoursSignals = [
       'gio mo cua', 'mo cua luc may gio', 'mo cua may gio', 'may gio mo cua', 'dong cua', 'may gio dong cua',
       'co nghi trua khong', 'ngay le co mo khong', 'tet co mo khong', 'ngay le', 'tet nguyen dan', 'quoc khanh',
       'thu hai co mo khong', 'gio tham quan', 'lich hoat dong', 'mo cua don khach',
       'opening hours', 'opening time', 'open today', 'when does it open', 'closing time', 'what time does it close', 'schedule'
     ];
-    if (hoursSignals.some(s => norm.includes(s))) {
+    if (!isHistoricalOpening && hoursSignals.some(s => norm.includes(s))) {
       return {
         intent: INTENTS.OPENING_HOURS,
         subIntent: null,
@@ -367,13 +377,14 @@ class IntentClassifier {
     }
 
     // 11. Hướng dẫn tham quan (Visit Guidance)
+    const isHistoricalPassage = norm.includes('mai vom') || norm.includes('phiến đá') || norm.includes('phien da') || norm.includes('da xanh') || norm.includes('bac cua') || norm.includes('nguong cua');
     const guidanceSignals = [
-      'di nhu the nao', 'loi di', 'huong di', 'tim khu vuc', 'cach quan sat',
+      'di nhu the nao', 'loi di vao', 'loi di ra', 'huong di nao', 'tim khu vuc', 'cach quan sat',
       'audioguide su dung the nao', 'thuyet minh tu dong', 'quy dinh tham quan',
       'trang phuc tham quan', 'trang phuc', 'mac do gi',
       'how to get', 'direction', 'dress code', 'rules', 'audio guide'
     ];
-    if (guidanceSignals.some(s => norm.includes(s))) {
+    if (!isHistoricalPassage && guidanceSignals.some(s => norm.includes(s))) {
       return {
         intent: INTENTS.VISIT_GUIDANCE,
         subIntent: null,

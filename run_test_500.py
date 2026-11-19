@@ -23,7 +23,7 @@ import unicodedata
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-base_dir = r"C:\Users\Nam\Desktop\tp\kiemthu"
+base_dir = os.path.dirname(os.path.abspath(__file__))
 excel_in_path = os.path.join(base_dir, "data", "500_cau_hoi_du_khach_Nha_tu_Hoa_Lo.xlsx")
 ground_truth_path = os.path.join(base_dir, "data", "500_cau_hoi_chuan_lich_su.json")
 md_out_path = os.path.join(base_dir, "BAO_CAO_KIEM_THU_500_CAU_MOI.md")

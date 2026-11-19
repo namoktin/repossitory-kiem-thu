@@ -81,11 +81,11 @@ async function runIntegrationTests() {
   }
 
   // 1. Health check
-  await test('Endpoint GET /health phản hồi 200 UP và phiên bản 6.0.0', async () => {
+  await test('Endpoint GET /health phản hồi 200 UP và phiên bản 6.1.0', async () => {
     const res = await getRequest('/health');
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.status, 'UP');
-    assert(res.body.version.includes('6.0.0'), 'Phiên bản không đúng');
+    assert(res.body.version.includes('6.1.0') || res.body.version.includes('6.1'), 'Phiên bản không đúng');
   });
 
   // 2. Stats endpoint
@@ -107,7 +107,20 @@ async function runIntegrationTests() {
     assert(res.body.data.reply.includes('4 mét') || res.body.data.reply.includes('50kg'));
     assert(res.body.data.sessionId, 'Thiếu sessionId');
     assert(res.body.data.requestTier, 'Thiếu requestTier');
+    assert(Array.isArray(res.body.data.verifiedClaims), 'Thiếu verifiedClaims');
+    assert(typeof res.body.data.confidenceScore === 'number', 'Thiếu confidenceScore');
     sessionId = res.body.data.sessionId;
+  });
+
+  // 3b. Tour siêu tốc 15 phút
+  await test('Tour siêu tốc 15 phút: Trả về lộ trình 3 điểm dừng cốt lõi', async () => {
+    const res = await postRequest('/api/chat/ask', {
+      question: 'Tôi chỉ có 15 phút thì xem được những gì?'
+    });
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.success, true);
+    assert(res.body.data.reply.includes('15'));
+    assert(res.body.data.reply.includes('Cổng chính') || res.body.data.reply.includes('Cây bàng') || res.body.data.reply.includes('Đài tưởng niệm'));
   });
 
   // 4. Multi-turn Follow-up Continuity

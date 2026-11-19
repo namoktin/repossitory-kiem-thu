@@ -10,6 +10,7 @@ const sessionManager = require('../engine/session_manager');
 const customerCareScenarios = require('../engine/customer_care_scenarios');
 const responseCache = require('../engine/response_cache');
 const { knowledgeBase } = require('../engine/knowledge_base');
+const answerValidator = require('../engine/answer_validator');
 
 let passedTests = 0;
 let totalTests = 0;
@@ -152,6 +153,103 @@ async function runUnitTests() {
     responseCache.set('giá vé hỏa lò', 've_tham_quan', 'vi', { reply: '50.000 VNĐ' });
     const cached = responseCache.get('giá vé hỏa lò', 've_tham_quan', 'vi');
     assert.strictEqual(cached.reply, '50.000 VNĐ');
+  });
+
+  it('Cacheability Guard: Từ chối cache khi có ràng buộc cá nhân hóa hoặc follow-up', () => {
+    assert.strictEqual(responseCache.isCacheable({ isFollowUp: true }), false);
+    assert.strictEqual(responseCache.isCacheable({ userProfile: { timeConstraint: 15 } }), false);
+    assert.strictEqual(responseCache.isCacheable({ confidence: 'LOW' }), false);
+    assert.strictEqual(responseCache.isCacheable({ isFollowUp: false, userProfile: {}, confidence: 'HIGH' }), true);
+  });
+
+  // 6. Real Claim-Level Answer Validator Tests (V6.1)
+  console.log('\n--- 6. Real Claim-Level Answer Validator (V6.1) ---');
+  it('Trích xuất các mệnh đề đơn nguyên tử (extractClaims)', () => {
+    const text = 'Máy chém cao gần 4 mét và lưỡi dao nặng 50kg. Thực dân Pháp dùng máy chém để đàn áp phong trào yêu nước.';
+    const claims = answerValidator.extractClaims(text);
+    assert(claims.length >= 2, 'Không trích xuất đủ claims');
+    assert(claims.some(c => c.claimText.includes('4 mét') || c.claimText.includes('50kg')));
+  });
+
+  it('Đối chiếu bằng chứng và gắn nhãn (SUPPORTED / CONTRADICTED)', () => {
+    const claims = [
+      { claimId: 'CLM-1', claimText: 'Máy chém cao gần 4 mét và lưỡi dao nặng 50kg' },
+      { claimId: 'CLM-2', claimText: 'Máy chém cao tới 15 mét và nặng 5 tấn' }
+    ];
+    const retrievedData = {
+      groundTruthMatch: {
+        item: {
+          answer: 'Máy chém cao gần 4m, lưỡi dao nặng khoảng 50kg, dùng để hành quyết tù nhân.'
+        }
+      }
+    };
+    const verified = answerValidator.verifyClaims(claims, retrievedData);
+    assert.strictEqual(verified[0].verificationStatus, 'SUPPORTED');
+    assert.strictEqual(verified[1].verificationStatus, 'CONTRADICTED');
+  });
+
+  it('Sửa lỗi dữ kiện mâu thuẫn (Clean Replacement) mà không làm vỡ văn phong', () => {
+    const dirtyText = 'Theo ghi nhận, cỗ máy chém tại Nhà tù Hỏa Lò cao 15 mét và nặng 5 tấn do thực dân Pháp chuyển từ Pháp sang.';
+    const claims = answerValidator.extractClaims(dirtyText);
+    const retrievedData = {
+      groundTruthMatch: {
+        item: {
+          answer: 'Máy chém cao gần 4m, lưỡi dao hình thang nặng khoảng 50kg.'
+        }
+      }
+    };
+    const verified = answerValidator.verifyClaims(claims, retrievedData);
+    const corrected = answerValidator.correctAnswer(dirtyText, verified, retrievedData);
+    assert.strictEqual(corrected.wasCorrected, true);
+    assert(corrected.text.includes('4 mét') || corrected.text.includes('4m'));
+    assert(!corrected.text.includes('15 mét'));
+    assert(!corrected.text.includes('5 tấn'));
+  });
+
+  it('Hiệu chuẩn độ tin cậy thực tế (Confidence Calibration)', () => {
+    const highVerified = [
+      { claimText: 'Claim 1', verificationStatus: 'SUPPORTED' },
+      { claimText: 'Claim 2', verificationStatus: 'SUPPORTED' }
+    ];
+    const calHigh = answerValidator.calibrateConfidence(highVerified, 'EXACT');
+    assert.strictEqual(calHigh.confidence, 'HIGH');
+    assert(calHigh.score >= 0.95);
+
+    const contradicted = [
+      { claimText: 'Claim 1', verificationStatus: 'CONTRADICTED' },
+      { claimText: 'Claim 2', verificationStatus: 'UNVERIFIED' }
+    ];
+    const calLow = answerValidator.calibrateConfidence(contradicted, 'NONE');
+    assert.strictEqual(calLow.confidence, 'LOW');
+    assert(calLow.score <= 0.60);
+  });
+
+  // 7. Advanced Customer Care Scenarios V6.1
+  console.log('\n--- 7. Advanced Customer Care Scenarios (V6.1) ---');
+  it('Xử lý kịch bản Tour siêu tốc 15 phút (TOUR_ULTRA_SHORT_15MIN)', () => {
+    const res = customerCareScenarios.resolveScenario({
+      intent: 'TOUR_RECOMMENDATION',
+      subIntent: null,
+      urgency: 'NORMAL',
+      normQuery: 'toi chi co 15 phut thi nen xem nhung gi',
+      userProfile: { timeConstraint: 15 },
+      language: 'vi'
+    });
+    assert.strictEqual(res.scenarioId, 'TOUR_ULTRA_SHORT_15MIN');
+    assert(res.response.includes('15 phút'));
+    assert(res.response.includes('Cổng chính') || res.response.includes('Cây bàng') || res.response.includes('Máy chém'));
+  });
+
+  it('Xử lý kịch bản lỗi cổng soát vé (TICKET_ENTRY_ISSUE)', () => {
+    const res = customerCareScenarios.resolveScenario({
+      intent: 'CUSTOMER_ASSISTANCE',
+      subIntent: 'TICKET_ISSUE',
+      urgency: 'HIGH',
+      normQuery: 'ma qr tren ve khong quet duoc qua cong',
+      language: 'vi'
+    });
+    assert(res.scenarioId, 'TICKET_ENTRY_ISSUE');
+    assert(res.response.includes('soát vé') || res.response.includes('Quầy vé') || res.response.includes('cổng kiểm soát'));
   });
 
   console.log(`\n========================================`);

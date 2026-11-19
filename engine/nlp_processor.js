@@ -113,7 +113,8 @@ class NlpProcessor {
     const norm = ' ' + this.normalize(raw) + ' ';
 
     let timeConstraint = null;
-    if (norm.includes('20 phut') || norm.includes('20p')) timeConstraint = 20;
+    if (norm.includes('15 phut') || norm.includes('15p')) timeConstraint = 15;
+    else if (norm.includes('20 phut') || norm.includes('20p')) timeConstraint = 20;
     else if (norm.includes('30 phut') || norm.includes('30p')) timeConstraint = 30;
     else if (norm.includes('45 phut') || norm.includes('45p')) timeConstraint = 45;
     else if (norm.includes('1 tieng') || norm.includes('60 phut') || norm.includes('90 phut')) timeConstraint = 90;

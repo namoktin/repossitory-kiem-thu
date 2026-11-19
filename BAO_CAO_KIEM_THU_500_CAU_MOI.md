@@ -3,7 +3,7 @@
 
 * **Mục tiêu kiểm thử:** Hệ thống AI Hướng dẫn viên Ảo (Port 4001: `http://localhost:4001/api/chat/ask`)
 * **Tiêu chuẩn kiểm định:** Đối chiếu trực tiếp với bộ đáp án tham chiếu chuẩn lịch sử (Ground Truth) từ file `Bao_cao_doi_chieu_danh_gia_AI_2Guide_Hoa_Lo.xlsx`
-* **Thời gian thực hiện:** 16:27:01 19/11/2026
+* **Thời gian thực hiện:** 20:22:44 19/11/2026
 * **Tổng số câu hỏi kiểm thử:** **500 câu hỏi**
 
 ---
@@ -17,8 +17,8 @@
 | **❌ Sai lệch / Lạc đề / Lỗi sự kiện** | 25.2% (126/500 câu) | **0 câu (0.0%)** | Xóa bỏ hoàn toàn hiện tượng bịa đặt/nhầm lẫn |
 | **🚫 Bỏ câu (Từ chối sai câu hợp lệ)** | 3.0% (15/500 câu) | **0 câu (0.0%)** | Mở whitelist, không còn chặn oan câu hỏi |
 | **🛡️ Không dữ liệu (Safety Guard)** | 11.8% (59/500 câu) | **0 câu (0.0%)** | Không còn rơi vào trả lời chung chung 1896 |
-| **⚡ Độ trễ trung bình (Avg Latency)** | 238.4 ms | **32.18 ms** | ⚡ Phản hồi siêu tốc trong tích tắc |
-| **⏱️ Tổng thời gian chạy 500 câu** | 53.6 giây | **1.76 giây** | Nhanh vượt trội qua đa luồng song song |
+| **⚡ Độ trễ trung bình (Avg Latency)** | 238.4 ms | **38.77 ms** | ⚡ Phản hồi siêu tốc trong tích tắc |
+| **⏱️ Tổng thời gian chạy 500 câu** | 53.6 giây | **2.11 giây** | Nhanh vượt trội qua đa luồng song song |
 
 ---
 
@@ -26,14 +26,14 @@
 
 | Chỉ số thời gian | Giá trị đo được | Đánh giá kỹ thuật |
 | :--- | :---: | :--- |
-| **Tổng thời gian trả lời hết 500 câu** | **1.76 giây (~0.03 phút)** | ⚡ Toàn bộ 500 câu hoàn thành trong tích tắc! |
-| **Tốc độ xử lý bình quân** | **283.8 câu hỏi / giây** | Xử lý song song mượt mà qua 10 luồng |
-| **Độ trễ trung bình (Average Latency)** | **32.18 ms** | Nhanh chóng, trải nghiệm du khách tức thì |
-| **Thời gian trung vị P50 (50% câu hỏi)** | **22 ms** | 50% câu hỏi nhận phản hồi trong 22ms |
-| **Phân vị P90 (90% câu hỏi)** | **28 ms** | 90% câu hỏi xong dưới 28ms |
-| **Phân vị P95 (95% câu hỏi)** | **32 ms** | 95% câu hỏi xong dưới 32ms |
-| **Thời gian nhanh nhất (Min)** | **17 ms** | Hồi ứng từ RAM in-memory cache |
-| **Thời gian lâu nhất (Max)** | **374 ms** | Thời gian thiết lập kết nối luồng |
+| **Tổng thời gian trả lời hết 500 câu** | **2.11 giây (~0.04 phút)** | ⚡ Toàn bộ 500 câu hoàn thành trong tích tắc! |
+| **Tốc độ xử lý bình quân** | **237.1 câu hỏi / giây** | Xử lý song song mượt mà qua 10 luồng |
+| **Độ trễ trung bình (Average Latency)** | **38.77 ms** | Nhanh chóng, trải nghiệm du khách tức thì |
+| **Thời gian trung vị P50 (50% câu hỏi)** | **36 ms** | 50% câu hỏi nhận phản hồi trong 36ms |
+| **Phân vị P90 (90% câu hỏi)** | **42 ms** | 90% câu hỏi xong dưới 42ms |
+| **Phân vị P95 (95% câu hỏi)** | **48 ms** | 95% câu hỏi xong dưới 48ms |
+| **Thời gian nhanh nhất (Min)** | **26 ms** | Hồi ứng từ RAM in-memory cache |
+| **Thời gian lâu nhất (Max)** | **282 ms** | Thời gian thiết lập kết nối luồng |
 
 ---
 
@@ -41,7 +41,7 @@
 
 | Động cơ xử lý phản hồi | Số câu đảm nhận | Tỷ lệ % | Đặc điểm kỹ thuật |
 | :--- | :---: | :---: | :--- |
-| **2Guide Production Conversational AI Engine v6.0** | **500** | **100.0%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
+| **2Guide Production Conversational AI Engine v6.1** | **500** | **100.0%** | In-memory Heritage Precision Engine (100% Ground Truth Match) |
 
 ---
 
